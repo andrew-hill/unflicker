@@ -4,10 +4,6 @@ Reapplies UVC webcam settings on macOS every time the camera is plugged in, led
 by the 50/60 Hz anti-flicker control that macOS exposes nowhere and that cameras
 forget on every reconnect.
 
-> **Status: working, not yet packaged.** Everything below is implemented and has
-> been run end to end on real cameras. There is no Homebrew tap yet, so
-> installing means building from source.
-
 ## Is this you?
 
 ✅ **Yes** — an **external USB webcam** bands or ripples under mains lighting,
@@ -30,8 +26,14 @@ attach.
 
 ## Install
 
-No Homebrew tap yet, so build it. Needs the Xcode command line tools
+```sh
+brew install andrew-hill/tap/unflicker
+```
+
+It builds from source, so you need the Xcode command line tools
 (`xcode-select --install`).
+
+To build it yourself instead:
 
 ```sh
 git clone https://github.com/andrew-hill/unflicker
@@ -42,7 +44,8 @@ cp .build/release/unflicker /usr/local/bin/
 
 Copy it somewhere permanent, as above. `install` records the path of whichever
 binary ran it, so installing out of `.build/release` breaks the agent the moment
-you clean or move the checkout.
+you clean or move the checkout. Homebrew's symlink is stable, so a brew install
+is not affected.
 
 ## Set it up
 
