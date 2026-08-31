@@ -102,6 +102,11 @@ Behind the monitor's internal USB3.2 hub. UVC 1.00, `bcdDevice` `0x0821`,
   `kUSBHostReturnPipeStalled`, while `GET_CUR` on the same control works. That
   is correct: UVC mandates only `GET_CUR`, `SET_CUR`, `GET_DEF` and `GET_INFO`
   for a boolean, so a range is something that does not exist. Never probe one.
+- **`SET_CUR` on `white-balance-temperature` stalls while
+  `white-balance-temperature-auto` is on** — `0xe0005000` again, though
+  `GET_CUR`, `GET_MIN` and `GET_MAX` all answer it. A control that reads and
+  will not write: `show` lists it with its range, and `set` reports the stall
+  and exits 1.
 - **`GET_DEF` on `privacy` returns `true`**, which taken literally means a
   factory default of blanked video. It isn't: the camera works after a replug
   with `privacy` off. A "restore everything to defaults" feature that trusted
