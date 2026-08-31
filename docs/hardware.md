@@ -41,6 +41,26 @@ Only `power-line-frequency` was moved off its default before the Dell and C922
 triggers, so whether either resets its *whole* Processing Unit the way the C925e
 does is untested.
 
+## Readiness after attach
+
+A camera appears in the IORegistry before it will answer control transfers, so
+`Apply.waitForDevices` retries on a 0.25s-to-2s backoff inside a 10s budget.
+
+Cold from unplugged:
+
+- C922, `IOUSBHostDevice` appearing to VideoControl interface published — the
+  interval the budget covers — 0.02s.
+- Published to `GET_CUR` answering: 0.02s C922, 0.00s Dell. The C922 is
+  bus-powered and the Dell is not; no difference.
+- Four agent runs across the two, never a `no camera answered` in the log.
+
+The budget cannot be entered early: an `IOUSBHostDevice` exists only once the
+camera's controller has booted and answered enumeration, and launchd matches on
+`IOUSBHostDevice`.
+
+C925e: `uvc-util` on a 1s retry loop had it unanswerable for ~20s. Not
+reproduced against the binary, untested since.
+
 ## Logitech C925e — `046d:085b`
 
 Read with `uvc-util` and a scratchpad IOUSBHost probe. The camera left before the
