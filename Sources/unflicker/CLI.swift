@@ -102,7 +102,16 @@ enum CLI {
                 defer { connection.close() }
                 for line in try controlLines(connection) { print("  \(line)") }
             }
-            if !matched { print(device.map { "no camera matching \($0)" } ?? "no UVC cameras found") }
+            // An empty bus is not an error. A --device matching nothing is the
+            // same condition `set` already exits 1 for.
+            if !matched {
+                guard let device else {
+                    print("no UVC cameras found")
+                    return 0
+                }
+                fail("unflicker: no camera matching \(device)")
+                return 1
+            }
             return 0
         } catch {
             fail("unflicker: \(error)")
@@ -205,6 +214,9 @@ enum CLI {
                 report(notice, fromLaunchd: fromLaunchd)
                 return 0
             }
+            // The outcome lines are identical either way, and reading them is
+            // what --dry-run is for.
+            if dryRun { report("dry run, nothing will be written:", fromLaunchd: fromLaunchd) }
             var faulted = false
             for result in try Apply.run(transport: transport, devices: cameras,
                                         config: config, dryRun: dryRun) {
@@ -314,19 +326,40 @@ enum CLI {
                         value: Int, device: UVCDeviceID?) throws -> [ApplyResult] {
         var results: [ApplyResult] = []
         for camera in try transport.devices() where device == nil || camera.id == device {
-            let connection = try transport.open(camera)
+            let connection: any UVCConnection
+            do {
+                connection = try transport.open(camera)
+            } catch {
+                // Recorded, not thrown, for the reason `Apply.run` gives: a
+                // throw discarded the writes already made to the cameras
+                // before this one.
+                results.append(ApplyResult(device: camera.id,
+                                           outcomes: [Apply.notOpened(error, camera.id)]))
+                continue
+            }
             defer { connection.close() }
 
             let outcome: ApplyOutcome
             if !connection.supported.contains(control.name) {
                 outcome = .unsupported(control.name)
             } else {
-                let range = try connection.range(control)
-                if range.contains(value) {
-                    try connection.set(control, to: value)
-                    outcome = .wrote(control.name, value)
-                } else {
-                    outcome = .outOfRange(control.name, value, range)
+                do {
+                    let range = try connection.range(control)
+                    if range.contains(value) {
+                        try connection.set(control, to: value)
+                        outcome = .wrote(control.name, value)
+                    } else {
+                        outcome = .outOfRange(control.name, value, range)
+                    }
+                } catch UVCError.deviceGone {
+                    // Reported rather than skipped. `apply` can drop a camera
+                    // that vanishes, but here an empty array is what says no
+                    // camera matched, and this one was here a moment ago.
+                    outcome = Apply.notOpened(UVCError.deviceGone, camera.id)
+                } catch let UVCError.transferFailed(_, code) where code.isStall {
+                    outcome = .stalled(control.name, code)
+                } catch {
+                    outcome = Apply.reporting(error)
                 }
             }
             results.append(ApplyResult(device: camera.id, outcomes: [outcome]))

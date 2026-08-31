@@ -218,3 +218,43 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
     // and the camera that did open was still reapplied
     #expect(connection.writes.map(\.1) == [1])
 }
+
+// An unknown control name or an out-of-range value is about this camera, and
+// the same config is right on the machine whose camera has the control. Text
+// that will not parse is wrong everywhere, so exiting 0 lets a typo disable the
+// setting on every machine, quietly, forever.
+@Test func aValueThatWillNotParseMakesApplyExitNonZero() {
+    let (info, connection) = c925e(powerLineFrequency: 2)
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
+                               configPath: tempConfig("[default]\npower-line-frequency = 55Hz\n"))
+
+    #expect(status == 1)
+    #expect(connection.writes.isEmpty)
+}
+
+// The other half of the same split: still tolerated, because the camera on the
+// next machine may well have the control.
+@Test func anUnknownControlNameLeavesApplySucceeding() {
+    let (info, connection) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
+                               configPath: tempConfig("[default]\nnot-a-control = 1\n"))
+
+    #expect(status == 0)
+    #expect(connection.writes.isEmpty)
+}
+
+@Test func aValueOutsideTheDeviceRangeLeavesApplySucceeding() {
+    let (info, connection) = c925e(powerLineFrequency: 2)
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    // The C925e answers 1...2, so `auto` is a value this camera does not have.
+    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
+                               configPath: tempConfig("[default]\npower-line-frequency = auto\n"))
+
+    #expect(status == 0)
+    #expect(connection.writes.isEmpty)
+}

@@ -17,8 +17,9 @@ enum ApplyOutcome: Equatable {
     /// A USB transfer that failed for a reason other than an unplug. Carries
     /// the rendered error so the IOKit code survives into the output.
     case failed(String)
-    /// Enumerated, then would not open. Carries the rendered reason without
-    /// the device id, which is already the prefix of every printed line.
+    /// Enumerated, then would not open, or in `set` went away before the write
+    /// landed. Carries the rendered reason without the device id, which is
+    /// already the prefix of every printed line.
     case notOpened(String)
     /// The camera has no processing unit, so it has no controls at all. The
     /// whole-device form of `.unsupported`, and skipped for the same reason.
@@ -69,9 +70,14 @@ extension ApplyOutcome {
     /// `apply` must exit non-zero. It tolerates every other outcome: a config
     /// is shared between machines, and naming a control this camera does not
     /// have is not the run failing.
+    ///
+    /// `.badValue` is the exception. An unknown control name or an
+    /// out-of-range value is about this camera, and the same config is right on
+    /// the machine whose camera has it. Text that will not parse is wrong
+    /// everywhere.
     var isFault: Bool {
         switch self {
-        case .failed, .notOpened: return true
+        case .failed, .notOpened, .badValue: return true
         default: return false
         }
     }
@@ -185,8 +191,9 @@ enum Apply {
     }
 
     /// The device id is the prefix of every printed line, so the reason drops
-    /// it rather than saying it twice.
-    private static func notOpened(_ error: any Error, _ id: UVCDeviceID) -> ApplyOutcome {
+    /// it rather than saying it twice. Shared with `set`, which reports the
+    /// same conditions in the same words.
+    static func notOpened(_ error: any Error, _ id: UVCDeviceID) -> ApplyOutcome {
         Log.usb.error("open \(id.description, privacy: .public) failed: \(String(describing: error), privacy: .public)")
         switch error {
         case UVCError.noProcessingUnit:
@@ -201,7 +208,7 @@ enum Apply {
     /// Anything that is not an unplug. The raw IOKit code is the whole
     /// diagnosis if launchd USB access ever breaks (see `IOReturnCode`), so it
     /// goes to the log *and* into the outcome the caller prints.
-    private static func reporting(_ error: any Error) -> ApplyOutcome {
+    static func reporting(_ error: any Error) -> ApplyOutcome {
         Log.usb.error("\(String(describing: error), privacy: .public)")
         return .failed("\(error)")
     }

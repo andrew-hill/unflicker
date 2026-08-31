@@ -107,7 +107,15 @@ struct Config: Equatable {
         // same control. That is the documented override, not a duplicate.
         var seen: [String: [String: Int]] = [:]
 
-        for (index, rawLine) in text.components(separatedBy: .newlines).enumerated() {
+        // `.newlines` is a CharacterSet, so it splits CRLF twice and counts
+        // the empty half, reporting every error in a CRLF file at line 2N-1.
+        // It also splits U+000B, U+000C, U+0085, U+2028 and U+2029, none of
+        // which end a line in a config file.
+        let lines = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .components(separatedBy: "\n")
+        for (index, rawLine) in lines.enumerated() {
             let number = index + 1
             var line = rawLine
             if let hash = line.firstIndex(of: "#") { line = String(line[line.startIndex..<hash]) }

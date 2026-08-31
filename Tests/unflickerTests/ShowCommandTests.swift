@@ -30,3 +30,27 @@ private func dell() -> FakeConnection {
 
     #expect(throws: UVCError.self) { try CLI.controlLines(connection) }
 }
+
+// MARK: - exit status
+
+// An empty bus is not an error. A --device the user typed that matches nothing
+// is, and it is the same condition `set` already exits 1 for.
+@Test func showWithADeviceFilterMatchingNothingExitsNonZero() {
+    let (info, connection) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.showControls(transport, device: UVCDeviceID(vendor: 0x9999, product: 0x9999))
+
+    #expect(status != 0)
+}
+
+@Test func showWithNoCamerasAtAllIsNotAnError() {
+    #expect(CLI.showControls(FakeTransport(infos: [], connections: [:]), device: nil) == 0)
+}
+
+@Test func showExitsZeroWhenTheDeviceFilterMatches() {
+    let (info, _) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: dell()])
+
+    #expect(CLI.showControls(transport, device: info.id) == 0)
+}

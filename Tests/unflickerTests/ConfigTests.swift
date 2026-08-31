@@ -194,3 +194,25 @@ private let otherID = UVCDeviceID(vendor: 0x1234, product: 0x5678)
     #expect(try Config.parse("# all commented out\n").isEmpty)
     #expect(try !Config.parse(Config.starterTemplate).isEmpty)
 }
+
+// Splitting on the .newlines CharacterSet cut CRLF twice and counted the empty
+// line between the halves, so line N was reported as 2N-1 and the number drifted
+// further from the truth the further down the file the mistake was.
+@Test func crlfLineEndingsDoNotInflateTheLineNumber() {
+    #expect(throws: ConfigError.malformedLine(number: 3, text: "power-line-frequency")) {
+        try Config.parse("[default]\r\nbrightness = 100\r\npower-line-frequency\r\n")
+    }
+}
+
+@Test func crlfLineEndingsParseTheSameAsUnix() throws {
+    let crlf = try Config.parse("[default]\r\npower-line-frequency = 50Hz\r\n")
+    #expect(crlf == (try Config.parse("[default]\npower-line-frequency = 50Hz\n")))
+}
+
+// U+2028 is in CharacterSet.newlines but ends no line in a config file. Split
+// on it and the value is cut in half, and the error names a line that is not
+// the one the user typed.
+@Test func anExoticSeparatorInsideAValueIsNotALineBreak() throws {
+    let config = try Config.parse("[default]\nbrightness = 12\u{2028}8\n")
+    #expect(config.settings(for: UVCDeviceID(vendor: 0, product: 0))["brightness"] == "12\u{2028}8")
+}
