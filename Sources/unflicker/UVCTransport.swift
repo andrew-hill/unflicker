@@ -51,6 +51,12 @@ enum UVCError: Error {
     case enumerationFailed(IOReturnCode)
     case openFailed(UVCDeviceID, IOReturnCode)
     case transferFailed(control: String, code: IOReturnCode)
+    /// A successful transfer that moved fewer bytes than the data phase. USB
+    /// lets a device end the data stage short, so IOKit reports no error and
+    /// the untouched bytes decode as 0: `disabled` for power-line-frequency,
+    /// which `apply` reads as the value it wanted. No IOReturnCode because
+    /// IOKit produced none.
+    case shortTransfer(control: String, expected: Int, moved: Int)
     case noProcessingUnit(UVCDeviceID)
     case deviceGone
 }
@@ -81,6 +87,8 @@ extension UVCError: CustomStringConvertible {
             return "could not open camera \(id): IOKit \(code)"
         case let .transferFailed(control, code):
             return "\(control): USB transfer failed: IOKit \(code)"
+        case let .shortTransfer(control, expected, moved):
+            return "\(control): USB transfer moved \(moved) of \(expected) bytes"
         case let .noProcessingUnit(id):
             return "camera \(id) exposes no UVC processing unit"
         case .deviceGone:

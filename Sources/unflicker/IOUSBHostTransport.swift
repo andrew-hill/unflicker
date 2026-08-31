@@ -21,6 +21,7 @@ struct IOUSBHostTransport: UVCTransport {
         defer { IOObjectRelease(iterator) }
 
         var found: [UVCDeviceInfo] = []
+        var seen: Set<UInt64> = []
         var service = IOIteratorNext(iterator)
         while service != 0 {
             defer { IOObjectRelease(service); service = IOIteratorNext(iterator) }
@@ -28,6 +29,10 @@ struct IOUSBHostTransport: UVCTransport {
             guard IORegistryEntryGetParentEntry(service, kIOServicePlane, &parent) == KERN_SUCCESS else { continue }
             defer { IOObjectRelease(parent) }
             guard let info = Self.describe(parent) else { continue }
+            // RGB and IR are separate video functions under one device (UVC
+            // 1.5 2.4), each with its own VideoControl interface, both walking
+            // up to this parent.
+            guard seen.insert(info.registryID).inserted else { continue }
             found.append(info)
         }
         return found
@@ -101,18 +106,22 @@ final class IOUSBHostConnection: UVCConnection {
         while offset + 1 < total {
             let length = Int(bytes[offset])
             let type = bytes[offset + 1]
-            if length == 0 { break }
+            if length < 2 || offset + length > total { break }
 
             if type == 0x04 {   // INTERFACE
-                let isVideoControl = bytes[offset + 5] == 14 && bytes[offset + 6] == 1
+                // A descriptor too short to hold bInterfaceClass still ends
+                // the current interface: what follows is not VideoControl's.
+                let isVideoControl = length >= 7 && bytes[offset + 5] == 14 && bytes[offset + 6] == 1
                 videoControlInterface = isVideoControl ? bytes[offset + 2] : nil
             } else if type == 0x24,                      // CS_INTERFACE
+                      length >= 9,
                       let interface = videoControlInterface,
-                      bytes[offset + 2] == 0x05,         // VC_PROCESSING_UNIT
-                      length >= 9 {
+                      bytes[offset + 2] == 0x05 {        // VC_PROCESSING_UNIT
+                // bLength is 8 + bControlSize + the trailing fields. Trust
+                // bLength when a device reports the two inconsistently.
                 let controlSize = Int(bytes[offset + 7])
                 var controls: UInt32 = 0
-                for byte in 0..<min(controlSize, 4) {
+                for byte in 0..<min(controlSize, 4, length - 8) {
                     controls |= UInt32(bytes[offset + 8 + byte]) << (8 * byte)
                 }
                 return (bytes[offset + 3], interface, controls)
@@ -160,6 +169,9 @@ final class IOUSBHostConnection: UVCConnection {
             throw UVCError.transferFailed(control: control.name,
                                           code: IOReturnCode(value: Int32(truncatingIfNeeded: error.code)))
         }
+        guard moved == control.length else {
+            throw UVCError.shortTransfer(control: control.name, expected: control.length, moved: moved)
+        }
     }
 
     private func read(_ control: UVCControl, bRequest: UInt8) throws -> Int {
@@ -178,7 +190,10 @@ final class IOUSBHostConnection: UVCConnection {
             throw UVCError.transferFailed(control: control.name,
                                           code: IOReturnCode(value: Int32(truncatingIfNeeded: error.code)))
         }
-        let bytes = [UInt8](Data(referencing: payload).prefix(moved))
+        guard moved == control.length else {
+            throw UVCError.shortTransfer(control: control.name, expected: control.length, moved: moved)
+        }
+        let bytes = [UInt8](Data(referencing: payload))
         var raw: UInt32 = 0
         for (index, byte) in bytes.enumerated() { raw |= UInt32(byte) << (8 * UInt32(index)) }
         if control.signed && control.length == 2 {
