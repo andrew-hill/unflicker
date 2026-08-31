@@ -201,3 +201,56 @@ private let configPath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflic
     // Must not claim to have written anything: the user's own settings stand.
     #expect(!message.lowercased().contains("wrote"))
 }
+
+// launchd bootstraps ~/Library/LaunchAgents itself at login, so a plist left
+// behind after a failed bootstrap loads next time regardless. Install would
+// report failure and half-succeed - the hazard `uninstall` already guards.
+@Test func installLeavesNoPlistBehindWhenBootstrapFails() {
+    let url = tempPlistURL()
+    defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+    #expect(throws: AgentInstallerError.self) {
+        try AgentInstaller.install(binary: "/opt/homebrew/bin/unflicker", to: url,
+                                   run: { $0.first == "bootstrap" ? (5, "") : (0, "") })
+    }
+    #expect(FileManager.default.fileExists(atPath: url.path) == false)
+}
+
+// Reinstall overwrites the plist before launchctl is asked, so a bootstrap that
+// then fails has already destroyed the working one. The agent it boots out
+// first is not coming back on its own.
+@Test func aFailedReinstallPutsTheWorkingPlistBack() throws {
+    let url = tempPlistURL()
+    defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+    try AgentInstaller.install(binary: "/usr/local/bin/unflicker", to: url, run: { _ in (0, "") })
+    let working = try Data(contentsOf: url)
+
+    #expect(throws: AgentInstallerError.self) {
+        try AgentInstaller.install(binary: "/opt/homebrew/bin/unflicker", to: url,
+                                   run: { $0.first == "bootstrap" ? (5, "") : (0, "") })
+    }
+    #expect(try Data(contentsOf: url) == working)
+}
+
+// A plist that is there but cannot be read: the overwrite has already happened
+// by the time launchctl is asked, so there is nothing to put back and what is
+// on disk is the plist bootstrap just refused. Leaving it is what makes it load
+// at the next login.
+@Test func aFailedReinstallOverAnUnreadablePlistRemovesIt() throws {
+    let url = tempPlistURL()
+    defer {
+        try? FileManager.default.setAttributes([.posixPermissions: 0o700],
+                                               ofItemAtPath: url.deletingLastPathComponent().path)
+        try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
+    }
+    // Write-only: the write below succeeds, the read back does not.
+    try Data("old".utf8).write(to: url)
+    try FileManager.default.setAttributes([.posixPermissions: 0o200], ofItemAtPath: url.path)
+
+    #expect(throws: AgentInstallerError.self) {
+        try AgentInstaller.install(binary: "/opt/homebrew/bin/unflicker", to: url,
+                                   run: { $0.first == "bootstrap" ? (5, "") : (0, "") })
+    }
+    #expect(FileManager.default.fileExists(atPath: url.path) == false)
+}

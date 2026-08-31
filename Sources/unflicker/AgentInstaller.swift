@@ -63,13 +63,43 @@ enum AgentInstaller {
         // launchctl says so with a non-zero status; that is the normal case.
         _ = try? run(["bootout", "gui/\(getuid())/\(label)"])
 
+        // Kept so a failed bootstrap can put back what was working: the write
+        // below has already overwritten it by the time launchctl is asked.
+        // `existed` tells an absent agent from an unreadable one, which changes
+        // what there is to say, not what the rollback does.
+        let existed = FileManager.default.fileExists(atPath: url.path)
+        let previous = try? Data(contentsOf: url)
         let data = try PropertyListSerialization.data(
             fromPropertyList: plist(binary: binary), format: .xml, options: 0)
         try data.write(to: url)
 
         // A bootstrap that fails leaves nothing loaded. Without this check the
         // user finds out at the next replug.
-        try check(["bootstrap", "gui/\(getuid())", url.path], run)
+        do {
+            try check(["bootstrap", "gui/\(getuid())", url.path], run)
+        } catch {
+            // launchd bootstraps ~/Library/LaunchAgents itself at login, so a
+            // plist left here loads next time whatever launchctl just said.
+            // That is the hazard `uninstall` already carries a comment about.
+            do {
+                if let previous {
+                    try previous.write(to: url)
+                } else {
+                    // The write above succeeded, so what is on disk is the
+                    // plist launchctl just refused. Removing it is what keeps
+                    // it from loading at the next login.
+                    if existed {
+                        Log.agent.error("\(url.path, privacy: .public) could not be read before it was overwritten, so the previous agent is not recoverable")
+                    }
+                    try FileManager.default.removeItem(at: url)
+                }
+            } catch {
+                // A failed rollback leaves the plist `uninstall` warns about.
+                // The error thrown below is about launchctl, not this.
+                Log.agent.error("could not roll back \(url.path, privacy: .public): \(String(describing: error), privacy: .public)")
+            }
+            throw error
+        }
         Log.agent.notice("installed \(label, privacy: .public) for \(binary, privacy: .public)")
     }
 
