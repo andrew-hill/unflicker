@@ -4,6 +4,8 @@ import Foundation
 enum CLIError: Error, Equatable {
     case missingValue(String)
     case badDeviceID(String)
+    case unknownFlag(command: String, flag: String)
+    case unexpectedArgument(command: String, argument: String)
 }
 
 enum CLI {
@@ -23,6 +25,15 @@ enum CLI {
             fail(usage)
             return 2
         }
+        // Before the switch, so no command can forget it. `help` and an
+        // unknown command are not in the table and fall straight through.
+        do {
+            try rejectUnknownArguments(args, command: args[1])
+        } catch {
+            fail("unflicker: \(error)\n\n\(usage)")
+            return 2
+        }
+
         switch args[1] {
         case "help", "-h", "--help":
             print(usage)
@@ -63,6 +74,44 @@ enum CLI {
 
     static func fail(_ message: String) {
         FileHandle.standardError.write(Data((message + "\n").utf8))
+    }
+
+    /// What each command accepts: its flags, and how many bare arguments it
+    /// takes. Only `set` takes one, the NAME=VALUE assignment.
+    static let accepted: [String: (flags: Set<String>, positionals: Int)] = [
+        "list": ([], 0),
+        "show": (["--device"], 0),
+        "set": (["--device"], 1),
+        "apply": (["--dry-run", "--from-launchd"], 0),
+        "install": ([], 0),
+        "uninstall": ([], 0),
+    ]
+
+    /// A misspelled flag must never read as its absence: `--dryrun` is a request
+    /// for a dry run, and the write it would otherwise perform is the one thing
+    /// the user asked not to happen.
+    static func rejectUnknownArguments(_ args: [String], command: String) throws {
+        guard let (allowed, positionals) = accepted[command] else { return }
+        var seen = 0
+        var index = 2
+        while index < args.count {
+            let arg = args[index]
+            if arg.hasPrefix("--") {
+                guard allowed.contains(arg) else {
+                    throw CLIError.unknownFlag(command: command, flag: arg)
+                }
+                // `--device`'s value is a value, not a flag or a positional.
+                // Leaving it to the loop would reject `--device --dry-run`
+                // here, and `deviceFilter` gives that the better message.
+                if arg == "--device" { index += 1 }
+            } else {
+                seen += 1
+                guard seen <= positionals else {
+                    throw CLIError.unexpectedArgument(command: command, argument: arg)
+                }
+            }
+            index += 1
+        }
     }
 
     /// nil means every camera, and that is why nothing else may fall through
@@ -377,6 +426,10 @@ extension CLIError: CustomStringConvertible {
             // Same shape as ConfigError.badSection: a vendor:product id is
             // spelled the same way in the config and on the command line.
             return "'\(text)' is not a vendor:product id like 046d:085b"
+        case let .unknownFlag(command, flag):
+            return "\(command) does not take \(flag)"
+        case let .unexpectedArgument(command, argument):
+            return "\(command) does not take '\(argument)'"
         }
     }
 }
