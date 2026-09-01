@@ -52,14 +52,14 @@ Cold from unplugged:
   interval the budget covers — 0.02s.
 - Published to `GET_CUR` answering: 0.02s C922, 0.00s Dell. The C922 is
   bus-powered and the Dell is not; no difference.
-- Four agent runs across the two, never a `no camera answered` in the log.
+- C925e, cold: 0.9s from appearing in the log to `GET_CUR` and `SET_CUR` done,
+  most of it `waitForDevices`' backoff rather than the camera. Warm replug:
+  answering at the first sample.
+- Six agent runs across the three, never a `no camera answered` in the log.
 
 The budget cannot be entered early: an `IOUSBHostDevice` exists only once the
 camera's controller has booted and answered enumeration, and launchd matches on
 `IOUSBHostDevice`.
-
-C925e: `uvc-util` on a 1s retry loop had it unanswerable for ~20s. Not
-reproduced against the binary, untested since.
 
 ## Logitech C925e — `046d:085b`
 
@@ -74,6 +74,11 @@ defaults or step sizes beyond `power-line-frequency`'s.
 - Camera Terminal `bmControls` = `0x020a2e`.
 - Unplugging the dock reset the whole Processing Unit *and* Camera Terminal:
   brightness, white balance, contrast, zoom, pan/tilt, exposure, focus.
+- **An ACKed `SET_CUR` did not hold.** Cold attach: 50 Hz written, 60 Hz read
+  back within 69s, no re-enumeration in between. Not reproduced on a warm
+  replug, which held for four minutes. `AVConference` was active only in the
+  window that reverted. Discarded write or something else rewriting it —
+  unknown, one observation.
 - **New Teams on Windows resets `power-line-frequency` when it selects this
   camera** — first-hand, though on Windows rather than macOS and long before the
   binary existed, so not a measurement. The only remedy was opening LogiTune and
