@@ -183,3 +183,18 @@ private let dellInfo = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", re
 
     #expect(results == [ApplyResult(device: info.id, outcomes: [.notOpened("camera disconnected")])])
 }
+
+// `set` reported the value it sent, not the value the camera holds. It reads
+// back for the same reason `apply` does.
+@Test func setReportsAWriteTheCameraDoesNotKeep() throws {
+    let (info, connection) = c925e(powerLineFrequency: 2)
+    connection.discards = ["power-line-frequency"]
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let results = try CLI.setOnce(transport, control: powerLineFrequency, value: 1, device: nil)
+
+    #expect(results == [ApplyResult(device: info.id,
+                                    outcomes: [.notKept("power-line-frequency", wrote: 1, reads: 2)])])
+    // Not a write, so setControl exits 1 rather than reporting success.
+    #expect(results[0].outcomes[0].isWrite == false)
+}

@@ -287,3 +287,25 @@ private let dellInfo = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", re
             == "could not open: IOKit 0xe00002c9, skipped")
     #expect(ApplyOutcome.noProcessingUnit.line == "exposes no UVC processing unit, skipped")
 }
+
+// The camera completes SET_CUR and keeps its old value. Reported as `.changed`
+// against the value that was read before the write, so a discarded write and a
+// successful one printed the same line.
+@Test func aWriteTheCameraDoesNotKeepIsNotReportedAsChanged() throws {
+    let (info, connection) = c925e(powerLineFrequency: 2)
+    connection.discards = ["power-line-frequency"]
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+    let config = try Config.parse("[default]\npower-line-frequency = 50Hz")
+
+    let results = try Apply.run(transport: transport, config: config, dryRun: false)
+
+    #expect(results == [ApplyResult(device: info.id,
+                                    outcomes: [.notKept("power-line-frequency", wrote: 1, reads: 2)])])
+    #expect(ApplyOutcome.notKept("power-line-frequency", wrote: 1, reads: 2).isFault)
+    #expect(connection.writes.map(\.1) == [1])
+}
+
+@Test func notKeptOutcomeReadsAsEnglish() {
+    #expect(ApplyOutcome.notKept("power-line-frequency", wrote: 1, reads: 2).line
+            == "power-line-frequency accepted 50Hz but reads 60Hz")
+}

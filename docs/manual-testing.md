@@ -63,6 +63,7 @@ streaming, trigger one of the cases below and read off:
 |---|---|
 | `power-line-frequency 60Hz -> 50Hz` | Camera reset, unflicker caught it. Working. |
 | `power-line-frequency already 50Hz` | launchd fired, camera had not reset. Harmless. |
+| `power-line-frequency accepted 50Hz but reads 60Hz` | The camera completed the write and kept its old value. Seen on the C925e. |
 | Nothing, `show` reads 50 Hz | launchd did not fire, nothing lost. Harmless. |
 | **Nothing, `show` reads 60 Hz** | **A gap** — the camera resets on a trigger the agent never hears. |
 

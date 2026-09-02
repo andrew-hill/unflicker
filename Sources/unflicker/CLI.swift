@@ -396,7 +396,13 @@ enum CLI {
                     let range = try connection.range(control)
                     if range.contains(value) {
                         try connection.set(control, to: value)
-                        outcome = .wrote(control.name, value)
+                        // Same read back `apply` does, and for the same
+                        // reason: the ACK says the transfer completed, not
+                        // that the camera kept the value.
+                        let readBack = try connection.current(control)
+                        outcome = readBack == value
+                            ? .wrote(control.name, value)
+                            : .notKept(control.name, wrote: value, reads: readBack)
                     } else {
                         outcome = .outOfRange(control.name, value, range)
                     }

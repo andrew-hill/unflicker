@@ -9,6 +9,9 @@ final class FakeConnection: UVCConnection {
     /// prove skip-if-correct actually skips.
     private(set) var writes: [(String, Int)] = []
     var closed = false
+    /// Controls the camera ACKs a write for and then does not keep. The C925e
+    /// did this to `power-line-frequency`; see docs/hardware.md.
+    var discards: Set<String> = []
 
     private struct Failure {
         let error: UVCError
@@ -54,6 +57,7 @@ final class FakeConnection: UVCConnection {
     func set(_ control: UVCControl, to value: Int) throws {
         if let error = failureFor(control, writing: true) { throw error }
         writes.append((control.name, value))
+        guard !discards.contains(control.name) else { return }
         values[control.name] = value
     }
 

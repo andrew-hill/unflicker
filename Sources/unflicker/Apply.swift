@@ -3,6 +3,10 @@ import Foundation
 enum ApplyOutcome: Equatable {
     case alreadyCorrect(String, Int)
     case changed(String, from: Int, to: Int)
+    /// The camera completed `SET_CUR` and `GET_CUR` still disagrees. Observed
+    /// on the C925e; see docs/hardware.md. An ACK is not evidence the value
+    /// took, so nothing is reported as changed without a read back.
+    case notKept(String, wrote: Int, reads: Int)
     case unsupported(String)
     /// The config parsed but has nothing for this camera. Reported rather than
     /// skipped: a camera that produces no output at all reads as "everything
@@ -35,6 +39,9 @@ enum ApplyOutcome: Equatable {
         case let .changed(name, from, to):
             let control = UVCControl.named(name)
             return "\(name) \(control?.format(from) ?? String(from)) -> \(control?.format(to) ?? String(to))"
+        case let .notKept(name, wrote, reads):
+            let control = UVCControl.named(name)
+            return "\(name) accepted \(control?.format(wrote) ?? String(wrote)) but reads \(control?.format(reads) ?? String(reads))"
         case let .unsupported(name):
             return "\(name) not supported by this camera, skipped"
         case .noSettings:
@@ -77,7 +84,7 @@ extension ApplyOutcome {
     /// everywhere.
     var isFault: Bool {
         switch self {
-        case .failed, .notOpened, .badValue: return true
+        case .failed, .notOpened, .badValue, .notKept: return true
         default: return false
         }
     }
@@ -181,6 +188,20 @@ enum Apply {
                     outcomes.append(.stalled(control.name, code))
                     continue
                 } catch {
+                    outcomes.append(reporting(error))
+                    return outcomes
+                }
+                do {
+                    let readBack = try connection.current(control)
+                    guard readBack == wanted else {
+                        outcomes.append(.notKept(control.name, wrote: wanted, reads: readBack))
+                        continue
+                    }
+                } catch UVCError.deviceGone {
+                    return outcomes
+                } catch {
+                    // Not `.stalled`: this control answered GET_CUR seconds
+                    // ago, so a refusal now is not "advertised but absent".
                     outcomes.append(reporting(error))
                     return outcomes
                 }
