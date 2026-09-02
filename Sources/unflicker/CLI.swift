@@ -9,6 +9,10 @@ enum CLIError: Error, Equatable {
 }
 
 enum CLI {
+    /// Bumped by hand at release. Homebrew builds from a release tarball with
+    /// no `.git`, so there is nothing to read a version out of at build time.
+    static let version = "1.0.2"
+
     static let usage = """
     usage: unflicker <command>
 
@@ -18,6 +22,7 @@ enum CLI {
       apply [--dry-run]             read config, apply to all connected cameras
       install                       write and load the LaunchAgent
       uninstall                     unload and remove it
+      --version                     print the version
     """
 
     static func run(_ args: [String]) -> Int32 {
@@ -25,18 +30,22 @@ enum CLI {
             fail(usage)
             return 2
         }
-        // Before the switch, so no command can forget it. `help` and an
-        // unknown command are not in the table and fall straight through.
+        // Before the switch, so no command can forget it. An unknown command
+        // is not in the table and falls straight through.
+        let command = canonical(args[1])
         do {
-            try rejectUnknownArguments(args, command: args[1])
+            try rejectUnknownArguments(args, command: command)
         } catch {
             fail("unflicker: \(error)\n\n\(usage)")
             return 2
         }
 
-        switch args[1] {
-        case "help", "-h", "--help":
+        switch command {
+        case "help":
             print(usage)
+            return 0
+        case "version":
+            print("unflicker \(version)")
             return 0
         case "list":
             return listCameras(IOUSBHostTransport())
@@ -67,7 +76,7 @@ enum CLI {
         case "uninstall":
             return uninstall()
         default:
-            fail("unflicker: unknown command '\(args[1])'\n\n\(usage)")
+            fail("unflicker: unknown command '\(command)'\n\n\(usage)")
             return 2
         }
     }
@@ -79,6 +88,8 @@ enum CLI {
     /// What each command accepts: its flags, and how many bare arguments it
     /// takes. Only `set` takes one, the NAME=VALUE assignment.
     static let accepted: [String: (flags: Set<String>, positionals: Int)] = [
+        "help": ([], 0),
+        "version": ([], 0),
         "list": ([], 0),
         "show": (["--device"], 0),
         "set": (["--device"], 1),
@@ -86,6 +97,16 @@ enum CLI {
         "install": ([], 0),
         "uninstall": ([], 0),
     ]
+
+    /// The flag spellings of the two commands that only print something, so
+    /// `accepted` and the switch each carry one name rather than three.
+    static func canonical(_ argument: String) -> String {
+        switch argument {
+        case "-h", "--help": return "help"
+        case "--version": return "version"
+        default: return argument
+        }
+    }
 
     /// A misspelled flag must never read as its absence: `--dryrun` is a request
     /// for a dry run, and the write it would otherwise perform is the one thing

@@ -100,3 +100,30 @@ import Testing
 @Test func aDeviceIdIsNotCountedAsAPositional() throws {
     try CLI.rejectUnknownArguments(["unflicker", "show", "--device", "046d:085b"], command: "show")
 }
+
+// `help` and `--version` were the two commands `accepted` did not list, and a
+// command missing from that table takes any flag and any number of arguments
+// in silence.
+@Test func theInformationalCommandsAreCheckedLikeAnyOther() {
+    #expect(throws: CLIError.self) {
+        try CLI.rejectUnknownArguments(["unflicker", "version", "--junk"], command: "version")
+    }
+    #expect(throws: CLIError.self) {
+        try CLI.rejectUnknownArguments(["unflicker", "help", "list"], command: "help")
+    }
+}
+
+@Test func theFlagSpellingsFoldOntoTheCommandNames() {
+    #expect(CLI.canonical("--help") == "help")
+    #expect(CLI.canonical("-h") == "help")
+    #expect(CLI.canonical("--version") == "version")
+    #expect(CLI.canonical("list") == "list")
+}
+
+// Both spellings, since --version reaches the table through canonical() and
+// the command name reaches it directly.
+@Test func versionIsAcceptedInEitherSpellingAndRejectsExtras() {
+    #expect(CLI.run(["unflicker", "--version"]) == 0)
+    #expect(CLI.run(["unflicker", "version"]) == 0)
+    #expect(CLI.run(["unflicker", "--version", "--junk"]) == 2)
+}

@@ -82,6 +82,7 @@ It should report `power-line-frequency = 50Hz`. If it doesn't, see
 | `unflicker show` | current value of every supported control |
 | `unflicker set NAME=VALUE` | write the camera now — not saved, lost on replug |
 | `unflicker apply --dry-run` | what the agent would change, without touching the device |
+| `unflicker --version` | which version is installed |
 
 # If it's working, you're done
 
