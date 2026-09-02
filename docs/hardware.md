@@ -55,7 +55,9 @@ Cold from unplugged:
 - C925e, cold: 0.9s from appearing in the log to `GET_CUR` and `SET_CUR` done,
   most of it `waitForDevices`' backoff rather than the camera. Warm replug:
   answering at the first sample.
-- Six agent runs across the three, never a `no camera answered` in the log.
+- Six agent runs across the three, never exhausting the budget with a camera
+  attached. It does exhaust it when the agent fires on some other USB device,
+  which is the empty bus rather than a camera that would not answer.
 
 The budget cannot be entered early: an `IOUSBHostDevice` exists only once the
 camera's controller has booted and answered enumeration, and launchd matches on
