@@ -83,7 +83,7 @@ final class IOUSBHostConnection: UVCConnection {
             throw UVCError.openFailed(id, IOReturnCode(value: Int32(truncatingIfNeeded: error.code)))
         }
         guard let descriptor = device.configurationDescriptor,
-              let unit = Self.processingUnit(descriptor) else {
+              let unit = ConfigurationDescriptor.processingUnit(Self.bytes(of: descriptor)) else {
             device.destroy()
             throw UVCError.noProcessingUnit(id)
         }
@@ -92,43 +92,13 @@ final class IOUSBHostConnection: UVCConnection {
         controlBits = unit.controls
     }
 
-    /// Walks the configuration descriptor for the VideoControl interface's
-    /// class-specific PROCESSING_UNIT descriptor. The unit id is per-device
-    /// (3 on a C925e), so it is never hardcoded.
-    private static func processingUnit(
-        _ configuration: UnsafePointer<IOUSBConfigurationDescriptor>
-    ) -> (id: UInt8, interface: UInt8, controls: UInt32)? {
-        let total = Int(UInt16(configuration.pointee.wTotalLength))
-        let bytes = UnsafeRawPointer(configuration).assumingMemoryBound(to: UInt8.self)
-        var offset = 0
-        var videoControlInterface: UInt8?
-
-        while offset + 1 < total {
-            let length = Int(bytes[offset])
-            let type = bytes[offset + 1]
-            if length < 2 || offset + length > total { break }
-
-            if type == 0x04 {   // INTERFACE
-                // A descriptor too short to hold bInterfaceClass still ends
-                // the current interface: what follows is not VideoControl's.
-                let isVideoControl = length >= 7 && bytes[offset + 5] == 14 && bytes[offset + 6] == 1
-                videoControlInterface = isVideoControl ? bytes[offset + 2] : nil
-            } else if type == 0x24,                      // CS_INTERFACE
-                      length >= 9,
-                      let interface = videoControlInterface,
-                      bytes[offset + 2] == 0x05 {        // VC_PROCESSING_UNIT
-                // bLength is 8 + bControlSize + the trailing fields. Trust
-                // bLength when a device reports the two inconsistently.
-                let controlSize = Int(bytes[offset + 7])
-                var controls: UInt32 = 0
-                for byte in 0..<min(controlSize, 4, length - 8) {
-                    controls |= UInt32(bytes[offset + 8 + byte]) << (8 * byte)
-                }
-                return (bytes[offset + 3], interface, controls)
-            }
-            offset += length
-        }
-        return nil
+    /// IOUSBHost fetched the whole descriptor, so its buffer really is
+    /// wTotalLength long; the walk re-checks the field against the copy anyway.
+    private static func bytes(
+        of configuration: UnsafePointer<IOUSBConfigurationDescriptor>
+    ) -> [UInt8] {
+        Array(UnsafeRawBufferPointer(start: configuration,
+                                     count: Int(UInt16(configuration.pointee.wTotalLength))))
     }
 
     var supported: Set<String> {

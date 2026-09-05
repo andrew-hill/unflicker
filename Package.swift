@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v15)],
     targets: [
         .executableTarget(name: "unflicker"),
-        .testTarget(name: "unflickerTests", dependencies: ["unflicker"]),
+        .testTarget(name: "unflickerTests", dependencies: ["unflicker"],
+                    resources: [.copy("Fixtures")]),
     ]
 )
