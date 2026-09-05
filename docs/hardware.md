@@ -117,6 +117,11 @@ Behind the monitor's internal USB3.2 hub. UVC 1.00, `bcdDevice` `0x0821`,
 - **The legacy IOUSBLib path agrees with IOUSBHost** — identical values and
   ranges for all nine controls through both user clients, and `SET_CUR`
   through IOUSBLib lands and reads back.
+- **Brief control-path opens during capture leave video untouched** — repeated
+  open, read-everything, write, close cycles through both user clients while
+  Photo Booth held the camera; preview clean throughout. The control paths do
+  exclude each other: a second concurrent open fails with `0xe00002c5`
+  (`kIOReturnExclusiveAccess`).
 - **`GET_DEF` on `privacy` returns `true`**, which taken literally means a
   factory default of blanked video. It isn't: the camera works after a replug
   with `privacy` off. A "restore everything to defaults" feature that trusted
