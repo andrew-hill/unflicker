@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unflicker — stop your webcam banding on macOS</title>
+<meta name="description" content="Reapplies your USB webcam's 50/60 Hz anti-flicker setting on macOS every time the camera is plugged in.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232d6cdf'/%3E%3Cg fill='%23fff'%3E%3Crect x='3' y='4' width='10' height='1.5'/%3E%3Crect x='3' y='7.25' width='10' height='1.5'/%3E%3Crect x='3' y='10.5' width='10' height='1.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1b1f24;
+    --muted: #5a6472;
+    --rule: #e2e6eb;
+    --accent: #2d6cdf;
+    --code-bg: #f4f6f8;
+    --yes: #1a7f4b;
+    --no: #b3341f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a;
+      --fg: #e6e9ed;
+      --muted: #98a2b0;
+      --rule: #2a2f36;
+      --accent: #7aa7f5;
+      --code-bg: #1d2126;
+      --yes: #55c98a;
+      --no: #f0846c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+    max-width: 44rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  h2 { font-size: 1.15rem; margin: 2.75rem 0 .6rem; letter-spacing: -0.01em; }
+  .lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 2rem; }
+  p { margin: 0 0 1rem; }
+  a { color: var(--accent); }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .875rem; }
+  code { background: var(--code-bg); padding: .12em .35em; border-radius: 3px; }
+  pre {
+    background: var(--code-bg);
+    padding: .9rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+  .test { border: 1px solid var(--rule); border-radius: 8px; padding: .25rem 1.25rem; margin: 0 0 1.5rem; }
+  .test p { margin: 1rem 0; }
+  .test b { display: block; }
+  .test em { font-style: normal; font-weight: 600; }
+  .yes b { color: var(--yes); }
+  .no b { color: var(--no); }
+  .links { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.25rem 0 0; padding: 0; list-style: none; }
+  .links a {
+    display: block;
+    padding: .55rem 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .links a:hover { border-color: var(--accent); }
+  footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .875rem; }
+</style>
+</head>
+<body>
+
+<h1>unflicker</h1>
+<p class="lede">Your USB webcam bands under mains lighting, and it forgets the fix every
+time you plug it in. This puts the setting back, on every reconnect.</p>
+
+<div class="test">
+  <p class="yes"><b>✅ This is for you if</b>
+  an <em>external USB webcam</em> ripples or bands under mains-powered lighting, and the
+  banding comes back every time you reconnect it. Cameras ship set to 60 Hz, so they are
+  wrong out of the box anywhere on a 50 Hz supply: the UK, Europe, most of Asia, Africa,
+  Australia, most of South America.</p>
+
+  <p class="no"><b>❌ This is not for you if</b>
+  it is the <em>built-in camera on a MacBook</em>. Those are not USB and expose no UVC
+  control, so nothing here can reach them, and neither can any similar tool.</p>
+</div>
+
+<h2>Install</h2>
+<pre><code>brew install andrew-hill/tap/unflicker
+unflicker install</code></pre>
+<p>Replug the camera. That is the setup. Building from source needs the Xcode command
+line tools; there is nothing else to install and nothing to configure.</p>
+
+<!-- App Store link goes here once the sandboxed build ships. -->
+
+<h2>Why your camera forgets</h2>
+<p>Webcams have a <code>power-line-frequency</code> setting that matches exposure to your
+mains supply, and they band when it is wrong. macOS exposes it nowhere: no System
+Settings pane, no <code>defaults</code> key, no API. Worse, reconnecting a camera resets it
+along with brightness, white balance and the rest, so setting it once does not hold.
+A camera inside a monitor re-enumerates whenever the display link drops, so powering the
+monitor off is enough to lose it.</p>
+
+<h2>Nothing runs in the background</h2>
+<p>No daemon, no menu bar item, no timer. macOS starts unflicker when a USB device
+attaches, it checks whether your camera needs the setting put back, and it quits. The
+same happens at login for anything already plugged in.</p>
+
+<h2>More</h2>
+<ul class="links">
+  <li><a href="https://github.com/andrew-hill/unflicker">Source and full documentation</a></li>
+  <li><a href="https://github.com/andrew-hill/unflicker/issues">Report a problem</a></li>
+</ul>
+
+<footer>MIT licensed. Built for macOS.</footer>
+
+</body>
+</html>
