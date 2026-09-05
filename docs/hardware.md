@@ -114,6 +114,9 @@ Behind the monitor's internal USB3.2 hub. UVC 1.00, `bcdDevice` `0x0821`,
   `GET_CUR`, `GET_MIN` and `GET_MAX` all answer it. A control that reads and
   will not write: `show` lists it with its range, and `set` reports the stall
   and exits 1.
+- **The legacy IOUSBLib path agrees with IOUSBHost** — identical values and
+  ranges for all nine controls through both user clients, and `SET_CUR`
+  through IOUSBLib lands and reads back.
 - **`GET_DEF` on `privacy` returns `true`**, which taken literally means a
   factory default of blanked video. It isn't: the camera works after a replug
   with `privacy` off. A "restore everything to defaults" feature that trusted
