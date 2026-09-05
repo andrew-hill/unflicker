@@ -1,6 +1,6 @@
 import Foundation
 
-enum ApplyOutcome: Equatable {
+public enum ApplyOutcome: Equatable {
     case alreadyCorrect(String, Int)
     case changed(String, from: Int, to: Int)
     /// The camera completed `SET_CUR` and `GET_CUR` still disagrees. Observed
@@ -32,7 +32,7 @@ enum ApplyOutcome: Equatable {
     /// against the value it read first.
     case wrote(String, Int)
 
-    var line: String {
+    public var line: String {
         switch self {
         case let .alreadyCorrect(name, value):
             return "\(name) already \(UVCControl.named(name)?.format(value) ?? String(value))"
@@ -82,7 +82,7 @@ extension ApplyOutcome {
     /// out-of-range value is about this camera, and the same config is right on
     /// the machine whose camera has it. Text that will not parse is wrong
     /// everywhere.
-    var isFault: Bool {
+    public var isFault: Bool {
         switch self {
         case .failed, .notOpened, .badValue, .notKept: return true
         default: return false
@@ -91,26 +91,37 @@ extension ApplyOutcome {
 
     /// `set` is one request the user typed, so only the write is success. The
     /// outcomes `apply` skips over are exactly the ones `set` cannot.
-    var isWrite: Bool {
+    public var isWrite: Bool {
         if case .wrote = self { return true }
         return false
     }
 }
 
-struct ApplyResult: Equatable {
-    let device: UVCDeviceID
-    let outcomes: [ApplyOutcome]
+public struct ApplyResult: Equatable {
+    public let device: UVCDeviceID
+    public let outcomes: [ApplyOutcome]
+
+    public init(device: UVCDeviceID, outcomes: [ApplyOutcome]) {
+        self.device = device
+        self.outcomes = outcomes
+    }
 }
 
-enum Apply {
-    static func run(transport: any UVCTransport, config: Config, dryRun: Bool) throws -> [ApplyResult] {
+/// What Apply needs from configuration. The CLI's Config conforms; the app's
+/// UserDefaults reader will.
+public protocol SettingsSource {
+    func settings(for id: UVCDeviceID) -> [String: String]
+}
+
+public enum Apply {
+    public static func run(transport: any UVCTransport, config: any SettingsSource, dryRun: Bool) throws -> [ApplyResult] {
         try run(transport: transport, devices: transport.devices(), config: config, dryRun: dryRun)
     }
 
     /// `devices` is passed in because the caller has usually just waited for
     /// them to appear.
-    static func run(transport: any UVCTransport, devices: [UVCDeviceInfo],
-                    config: Config, dryRun: Bool) throws -> [ApplyResult] {
+    public static func run(transport: any UVCTransport, devices: [UVCDeviceInfo],
+                    config: any SettingsSource, dryRun: Bool) throws -> [ApplyResult] {
         var results: [ApplyResult] = []
         for camera in devices {
             let settings = config.settings(for: camera.id)
@@ -214,7 +225,7 @@ enum Apply {
     /// The device id is the prefix of every printed line, so the reason drops
     /// it rather than saying it twice. Shared with `set`, which reports the
     /// same conditions in the same words.
-    static func notOpened(_ error: any Error, _ id: UVCDeviceID) -> ApplyOutcome {
+    public static func notOpened(_ error: any Error, _ id: UVCDeviceID) -> ApplyOutcome {
         Log.usb.error("open \(id.description, privacy: .public) failed: \(String(describing: error), privacy: .public)")
         switch error {
         case UVCError.noProcessingUnit:
@@ -229,7 +240,7 @@ enum Apply {
     /// Anything that is not an unplug. The raw IOKit code is the whole
     /// diagnosis if launchd USB access ever breaks (see `IOReturnCode`), so it
     /// goes to the log *and* into the outcome the caller prints.
-    static func reporting(_ error: any Error) -> ApplyOutcome {
+    public static func reporting(_ error: any Error) -> ApplyOutcome {
         Log.usb.error("\(String(describing: error), privacy: .public)")
         return .failed("\(error)")
     }
@@ -242,7 +253,7 @@ extension Apply {
     ///
     /// A budget of 0 checks once and returns, which is what an interactive run
     /// wants: there is no attach in flight to wait for.
-    static func waitForDevices(transport: any UVCTransport,
+    public static func waitForDevices(transport: any UVCTransport,
                                budget: TimeInterval,
                                sleep: (TimeInterval) -> Void = { Thread.sleep(forTimeInterval: $0) }) throws -> [UVCDeviceInfo] {
         var interval: TimeInterval = 0.25

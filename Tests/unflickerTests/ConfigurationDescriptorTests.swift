@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 // Layouts follow the USB 2.0 configuration/interface descriptors and the UVC

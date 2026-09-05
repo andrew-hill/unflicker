@@ -1,5 +1,7 @@
 import Foundation
 import Testing
+@testable import IOUSBLibTransport
+@testable import UVCCore
 @testable import unflicker
 
 // Hardware cross-check: the point of a second transport is that it disagrees

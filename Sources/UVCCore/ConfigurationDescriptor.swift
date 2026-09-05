@@ -1,11 +1,11 @@
 /// The one place that parses untrusted device data. It takes plain bytes so
 /// the malformed cases can be tested without a camera on the desk.
-enum ConfigurationDescriptor {
-    struct ProcessingUnit: Equatable, Sendable {
-        let id: UInt8
-        let interface: UInt8
+public enum ConfigurationDescriptor {
+    public struct ProcessingUnit: Equatable, Sendable {
+        public let id: UInt8
+        public let interface: UInt8
         /// The bmControls bitmap, in the UVC spec's Processing Unit layout.
-        let controls: UInt32
+        public let controls: UInt32
     }
 
     /// Walks a full configuration descriptor for the VideoControl interface's
@@ -15,7 +15,7 @@ enum ConfigurationDescriptor {
     /// wTotalLength is read from the descriptor but clamped to the buffer:
     /// it is a device-reported field and cannot be allowed to extend the walk
     /// past the bytes actually supplied.
-    static func processingUnit(_ bytes: [UInt8]) -> ProcessingUnit? {
+    public static func processingUnit(_ bytes: [UInt8]) -> ProcessingUnit? {
         guard bytes.count >= 4 else { return nil }
         let total = min(Int(bytes[2]) | Int(bytes[3]) << 8, bytes.count)
         var offset = 0

@@ -1,4 +1,5 @@
 import Foundation
+import UVCCore
 import IOKit
 import CUSBLegacy
 

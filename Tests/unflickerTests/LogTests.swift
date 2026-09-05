@@ -1,4 +1,5 @@
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 // The suite logs fixtures for things that never happened: installs from paths

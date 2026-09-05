@@ -1,4 +1,5 @@
 import Foundation
+@testable import UVCCore
 @testable import unflicker
 
 final class FakeConnection: UVCConnection {

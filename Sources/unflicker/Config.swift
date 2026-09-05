@@ -1,4 +1,5 @@
 import Foundation
+import UVCCore
 
 enum ConfigError: Error, Equatable {
     case malformedLine(number: Int, text: String)
@@ -15,7 +16,7 @@ enum ConfigError: Error, Equatable {
     case unreadable(String)
 }
 
-struct Config: Equatable {
+struct Config: Equatable, SettingsSource {
     private(set) var defaults: [String: String] = [:]
     private(set) var perDevice: [UVCDeviceID: [String: String]] = [:]
 

@@ -1,4 +1,5 @@
 import Foundation
+import UVCCore
 
 enum AgentInstallerError: Error, Equatable {
     case launchctlFailed([String], status: Int32, output: String)

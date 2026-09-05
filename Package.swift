@@ -6,8 +6,11 @@ let package = Package(
     platforms: [.macOS(.v15)],
     targets: [
         .target(name: "CUSBLegacy"),
-        .executableTarget(name: "unflicker", dependencies: ["CUSBLegacy"]),
-        .testTarget(name: "unflickerTests", dependencies: ["unflicker"],
+        .target(name: "UVCCore"),
+        .target(name: "IOUSBLibTransport", dependencies: ["UVCCore", "CUSBLegacy"]),
+        .executableTarget(name: "unflicker", dependencies: ["UVCCore"]),
+        .testTarget(name: "unflickerTests",
+                    dependencies: ["unflicker", "UVCCore", "IOUSBLibTransport"],
                     resources: [.copy("Fixtures")]),
     ]
 )

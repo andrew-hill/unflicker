@@ -1,4 +1,5 @@
 import Foundation
+import UVCCore
 
 /// Mistakes in what the user typed, as opposed to anything the camera did.
 enum CLIError: Error, Equatable {

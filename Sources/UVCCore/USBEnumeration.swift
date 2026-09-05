@@ -3,8 +3,8 @@ import IOKit
 
 /// Registry-only camera discovery, shared by both transports: which API talks
 /// to the device has no bearing on how its registry entry is found.
-enum USBEnumeration {
-    static func cameras() throws -> [UVCDeviceInfo] {
+public enum USBEnumeration {
+    public static func cameras() throws -> [UVCDeviceInfo] {
         // Match the VideoControl interface so only actual cameras are listed,
         // then walk up to the parent device. See IOUSBHostConnection for why
         // the device, not the interface, is what we end up talking to.
@@ -56,7 +56,7 @@ enum USBEnumeration {
 
     /// Reopens a device found by `cameras()`. Zero means it was unplugged
     /// between enumeration and now.
-    static func service(withRegistryID id: UInt64) -> io_service_t {
+    public static func service(withRegistryID id: UInt64) -> io_service_t {
         IOServiceGetMatchingService(kIOMainPortDefault, IORegistryEntryIDMatching(id))
     }
 }

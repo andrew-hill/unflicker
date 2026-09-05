@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 /// Reports no devices until `appearOnCall`, so the backoff can be driven

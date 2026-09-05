@@ -1,4 +1,5 @@
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 // Absent means every camera. That is the whole reason a typo must not also

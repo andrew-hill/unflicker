@@ -7,7 +7,7 @@ import XPC
 // forever. A shell script cannot call the API at all, and a spike doing
 // exactly that produced a flat 10 s cadence: the polling behaviour this whole
 // project exists to avoid.
-enum EventStream {
+public enum EventStream {
     /// Installs the handler, then returns the events seen once the stream has
     /// been quiet for `idle` seconds. xpc(3) warns that events can be dropped
     /// if the process exits while the handler is still running, hence waiting
@@ -19,7 +19,7 @@ enum EventStream {
     /// consumed when it is delivered to the handler", so the 10-second respawn
     /// loop cannot come back.
     @discardableResult
-    static func drain(idle: TimeInterval, cap: TimeInterval = 30) -> [String] {
+    public static func drain(idle: TimeInterval, cap: TimeInterval = 30) -> [String] {
         let queue = DispatchQueue(label: "net.thefrog.unflicker.events")
         let quiet = DispatchSemaphore(value: 0)
         let seen = Collector()

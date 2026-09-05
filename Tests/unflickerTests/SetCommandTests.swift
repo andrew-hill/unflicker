@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 private let gamma = UVCControl.named("gamma")!

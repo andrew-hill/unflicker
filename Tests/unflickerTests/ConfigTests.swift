@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 private let c925eID = UVCDeviceID(vendor: 0x046d, product: 0x085b)

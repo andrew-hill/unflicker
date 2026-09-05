@@ -1,4 +1,5 @@
 import Testing
+@testable import UVCCore
 @testable import unflicker
 
 private func dell() -> FakeConnection {
