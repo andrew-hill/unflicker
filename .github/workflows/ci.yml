@@ -14,3 +14,5 @@ jobs:
       - run: swift test
       # The README tells people to build this way; CI should prove it works.
       - run: swift build -c release
+      # Contributors and CI have no team membership; compiling is all this asserts.
+      - run: xcodebuild -project app/unflicker.xcodeproj -scheme unflicker -configuration Release CODE_SIGNING_ALLOWED=NO build

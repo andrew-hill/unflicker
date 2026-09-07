@@ -1,0 +1,484 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DF47EA552280769976F13234 /* UnflickerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C92A7443E9E23FD2D016B6 /* UnflickerApp.swift */; };
+		B2E328F618EF35884EBF27E7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A5BE626838848CBEB8D816 /* ContentView.swift */; };
+		7AB27CDB8B4B329D00605817 /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = 309C3D48240CEA5D41B74AA2 /* AppCore */; };
+		9CBE1A1D147ECDDF91795FE2 /* IOUSBLibTransport in Frameworks */ = {isa = PBXBuildFile; productRef = 5D320445BEA7679E64D2C700 /* IOUSBLibTransport */; };
+		B1A36344E020D83A3C95BD61 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156E655730B8D8C5EDC73A98 /* main.swift */; };
+		3C86B4911C906F9B10ABC74F /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = C598E49D67E562130399AE8D /* AppCore */; };
+		4492AB22AA0615741F094D34 /* IOUSBLibTransport in Frameworks */ = {isa = PBXBuildFile; productRef = CF645110652AB2CDF3589AE4 /* IOUSBLibTransport */; };
+		4A24242717FFC106A75E7518 /* unflicker-agent in Embed Helper */ = {isa = PBXBuildFile; fileRef = 2041808E9B8567FDE1DC056D /* unflicker-agent */; };
+		7D406632D792522699ED4ED4 /* net.thefrog.unflicker.agent.plist in Embed LaunchAgent */ = {isa = PBXBuildFile; fileRef = 1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B765ACCB0E546F4600AEE9BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C86835030D934629E740C615 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8BEB20135138AA2F1C82F53A;
+			remoteInfo = "unflicker-agent";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B81F5AC2377C880075B5FDDA /* Embed Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/MacOS;
+			dstSubfolderSpec = 1;
+			files = (
+				4A24242717FFC106A75E7518 /* unflicker-agent in Embed Helper */,
+			);
+			name = "Embed Helper";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		12A27DD91293A57BA3329395 /* Embed LaunchAgent */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchAgents;
+			dstSubfolderSpec = 1;
+			files = (
+				7D406632D792522699ED4ED4 /* net.thefrog.unflicker.agent.plist in Embed LaunchAgent */,
+			);
+			name = "Embed LaunchAgent";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		AABEFBF3635C5534B9A4C950 /* unflicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = unflicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		44C92A7443E9E23FD2D016B6 /* UnflickerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnflickerApp.swift; sourceTree = "<group>"; };
+		27A5BE626838848CBEB8D816 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		63DDB0672E636C6AEAEF552F /* unflicker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = unflicker.entitlements; sourceTree = "<group>"; };
+		1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.thefrog.unflicker.agent.plist; sourceTree = "<group>"; };
+		2041808E9B8567FDE1DC056D /* unflicker-agent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unflicker-agent"; sourceTree = BUILT_PRODUCTS_DIR; };
+		156E655730B8D8C5EDC73A98 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		F9EBE6D071EF257183FAA997 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4037B83303963ECFDFE53343 /* unflicker-agent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "unflicker-agent.entitlements"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BAED568A6AFB577A1D2D7750 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7AB27CDB8B4B329D00605817 /* AppCore in Frameworks */,
+				9CBE1A1D147ECDDF91795FE2 /* IOUSBLibTransport in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE3A1BD040EF1056435A4F65 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C86B4911C906F9B10ABC74F /* AppCore in Frameworks */,
+				4492AB22AA0615741F094D34 /* IOUSBLibTransport in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E92604F8016357814159EB34 = {
+			isa = PBXGroup;
+			children = (
+				ABA164BEF728D0EA0266A662 /* unflicker */,
+				B522382435A29C5FF3C0DFCA /* unflicker-agent */,
+				347837E61B025E404D9122F9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		347837E61B025E404D9122F9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AABEFBF3635C5534B9A4C950 /* unflicker.app */,
+				2041808E9B8567FDE1DC056D /* unflicker-agent */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ABA164BEF728D0EA0266A662 /* unflicker */ = {
+			isa = PBXGroup;
+			children = (
+				44C92A7443E9E23FD2D016B6 /* UnflickerApp.swift */,
+				27A5BE626838848CBEB8D816 /* ContentView.swift */,
+				63DDB0672E636C6AEAEF552F /* unflicker.entitlements */,
+				1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */,
+			);
+			path = unflicker;
+			sourceTree = "<group>";
+		};
+		B522382435A29C5FF3C0DFCA /* unflicker-agent */ = {
+			isa = PBXGroup;
+			children = (
+				156E655730B8D8C5EDC73A98 /* main.swift */,
+				F9EBE6D071EF257183FAA997 /* Info.plist */,
+				4037B83303963ECFDFE53343 /* unflicker-agent.entitlements */,
+			);
+			path = "unflicker-agent";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D5445E6C6AD0880BE7F6875F /* unflicker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 69AB55D7C60B24AF4778FFE5 /* Build configuration list for PBXNativeTarget "unflicker" */;
+			buildPhases = (
+				56FAC5A16FB414D0707D1581 /* Sources */,
+				BAED568A6AFB577A1D2D7750 /* Frameworks */,
+				815A497992958E9A26340016 /* Resources */,
+				B81F5AC2377C880075B5FDDA /* Embed Helper */,
+				12A27DD91293A57BA3329395 /* Embed LaunchAgent */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C12FF2DDB05A87E8A8C4F826 /* PBXTargetDependency */,
+			);
+			name = unflicker;
+			packageProductDependencies = (
+				309C3D48240CEA5D41B74AA2 /* AppCore */,
+				5D320445BEA7679E64D2C700 /* IOUSBLibTransport */,
+			);
+			productName = unflicker;
+			productReference = AABEFBF3635C5534B9A4C950 /* unflicker.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8BEB20135138AA2F1C82F53A /* unflicker-agent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F7C3F248E39EA3331C322F16 /* Build configuration list for PBXNativeTarget "unflicker-agent" */;
+			buildPhases = (
+				36F4925277C6BE3F7BA018FE /* Sources */,
+				CE3A1BD040EF1056435A4F65 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "unflicker-agent";
+			packageProductDependencies = (
+				C598E49D67E562130399AE8D /* AppCore */,
+				CF645110652AB2CDF3589AE4 /* IOUSBLibTransport */,
+			);
+			productName = "unflicker-agent";
+			productReference = 2041808E9B8567FDE1DC056D /* unflicker-agent */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C86835030D934629E740C615 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					8BEB20135138AA2F1C82F53A = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					D5445E6C6AD0880BE7F6875F = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = A1D3EC80086C92C08ED014EE /* Build configuration list for PBXProject "unflicker" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E92604F8016357814159EB34;
+			packageReferences = (
+				D3DF11158C30706FC3262BEB /* XCLocalSwiftPackageReference ".." */,
+			);
+			productRefGroup = 347837E61B025E404D9122F9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D5445E6C6AD0880BE7F6875F /* unflicker */,
+				8BEB20135138AA2F1C82F53A /* unflicker-agent */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		815A497992958E9A26340016 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		56FAC5A16FB414D0707D1581 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B2E328F618EF35884EBF27E7 /* ContentView.swift in Sources */,
+				DF47EA552280769976F13234 /* UnflickerApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36F4925277C6BE3F7BA018FE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1A36344E020D83A3C95BD61 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C12FF2DDB05A87E8A8C4F826 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8BEB20135138AA2F1C82F53A /* unflicker-agent */;
+			targetProxy = B765ACCB0E546F4600AEE9BF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		5DCD86891E77D178169E0D55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		45B677486CECFD2CE917E513 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		2611C0D1D274BDBD25348F36 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = unflicker/unflicker.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6UT69HR8H7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefrog.unflicker.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		3C8DE2B6BBD527257759BAD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = unflicker/unflicker.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6UT69HR8H7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefrog.unflicker.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		F67C977D938C309C9E9EDEA6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "unflicker-agent/unflicker-agent.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6UT69HR8H7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "unflicker-agent/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefrog.unflicker.agent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		6052F7AD4A5E2473D2FF280C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "unflicker-agent/unflicker-agent.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6UT69HR8H7;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "unflicker-agent/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.thefrog.unflicker.agent;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A1D3EC80086C92C08ED014EE /* Build configuration list for PBXProject "unflicker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5DCD86891E77D178169E0D55 /* Debug */,
+				45B677486CECFD2CE917E513 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		69AB55D7C60B24AF4778FFE5 /* Build configuration list for PBXNativeTarget "unflicker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2611C0D1D274BDBD25348F36 /* Debug */,
+				3C8DE2B6BBD527257759BAD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F7C3F248E39EA3331C322F16 /* Build configuration list for PBXNativeTarget "unflicker-agent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F67C977D938C309C9E9EDEA6 /* Debug */,
+				6052F7AD4A5E2473D2FF280C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		D3DF11158C30706FC3262BEB /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		309C3D48240CEA5D41B74AA2 /* AppCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppCore;
+		};
+		5D320445BEA7679E64D2C700 /* IOUSBLibTransport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IOUSBLibTransport;
+		};
+		C598E49D67E562130399AE8D /* AppCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppCore;
+		};
+		CF645110652AB2CDF3589AE4 /* IOUSBLibTransport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = IOUSBLibTransport;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = C86835030D934629E740C615 /* Project object */;
+}
