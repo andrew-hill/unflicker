@@ -8,12 +8,14 @@ import CUSBLegacy
 /// talks through this; the CLI stays on IOUSBHostTransport. Both are
 /// permanent: the day IOUSBLib is removed, the CLI still works and the app is
 /// what breaks.
-struct IOUSBLibTransport: UVCTransport {
-    func devices() throws -> [UVCDeviceInfo] {
+public struct IOUSBLibTransport: UVCTransport {
+    public init() {}
+
+    public func devices() throws -> [UVCDeviceInfo] {
         try USBEnumeration.cameras()
     }
 
-    func open(_ device: UVCDeviceInfo) throws -> any UVCConnection {
+    public func open(_ device: UVCDeviceInfo) throws -> any UVCConnection {
         let service = USBEnumeration.service(withRegistryID: device.registryID)
         guard service != 0 else { throw UVCError.deviceGone }
         defer { IOObjectRelease(service) }
