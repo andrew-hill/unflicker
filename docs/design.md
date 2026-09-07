@@ -17,7 +17,8 @@ In scope:
 
 - **UVC Processing Unit controls**, from a config file.
 - **Reapply on attach and at login.** No other trigger.
-- **Terminal as the setup surface**: `list`, `show`, `set`, `install`.
+- **Setup in the terminal**: `list`, `show`, `set`, `install`. The App Store app
+  puts that one setting in a window, for people who will not install a CLI.
 
 Out of scope:
 
@@ -54,21 +55,29 @@ Measured on hardware; per-camera numbers are in [hardware.md](hardware.md).
 
 ## Architecture
 
-- One Swift binary, SwiftPM, no third-party dependencies, system frameworks
-  only.
-- IOUSBHost, not the deprecated IOUSBLib. Both work; the choice is longevity,
-  not necessity.
+- SwiftPM, no third-party dependencies, system frameworks only. Two products:
+  the CLI, and an app bundle built by `app/unflicker.xcodeproj`, since SwiftPM
+  cannot produce one.
+- **Two transports, because the App Sandbox refuses IOUSBHost.** Opening one
+  returns `0xe00002e2` (`kIOReturnNotPermitted`) even holding
+  `com.apple.security.device.usb`, which grants the legacy IOUSBFamily user
+  client instead; no sandbox violation is logged. Only opening is gated:
+  enumeration works in either.
+  The unsandboxed CLI uses IOUSBHost, the sandboxed app IOUSBLib. Outside the
+  sandbox both work, so IOUSBHost is a longevity choice, not a necessity.
 
 | Component | Responsibility |
 |---|---|
 | `UVCTransport` | Protocol at the USB boundary: enumerate, `GET_*`, `SET_CUR` |
-| `IOUSBHostTransport` | The real implementation. The only untestable code |
+| `IOUSBHostTransport` | The CLI's implementation. Needs a camera to test |
+| `IOUSBLibTransport` | The app's. Same protocol, same descriptor walk |
 | `UVCControl` | Control catalogue: names, value maps, ranges, which are boolean |
 | `Config` | Parse the config; resolve which controls apply to a device |
 | `Apply` | Per-control decisions, readiness backoff |
 | `EventStream` | Consume the launchd IOKit event stream |
 | `AgentInstaller` | Write and bootstrap the LaunchAgent |
 | `CLI` | Subcommand dispatch, human-readable output |
+| `AppCore` | The app's model, its App Group setting, and the helper's main |
 
 `UVCTransport` is the test boundary:
 
@@ -127,10 +136,13 @@ viewer in the tool.
 
 ## Distribution
 
-- **Build from source.** macOS would quarantine and Gatekeeper-block a
-  downloaded binary without a Developer ID and notarisation; `swift build -c
-  release` sidesteps signing entirely.
-- **A sandboxed Mac App Store build is a possible later stage**, so the core
-  stays easy to lift into an app bundle: the helper would ship inside it and
-  register via `SMAppService` rather than dropping a plist, and would need
-  `com.apple.security.device.usb`.
+- **The CLI is built from source**, through Homebrew or by hand. macOS would
+  quarantine and Gatekeeper-block a downloaded binary without a Developer ID
+  and notarisation; `swift build -c release` sidesteps signing entirely.
+- **The app is built for the Mac App Store**, sandboxed, carrying
+  `com.apple.security.app-sandbox`, `com.apple.security.device.usb` and an
+  `application-groups` container. Its helper ships inside the bundle and
+  registers with `SMAppService` rather than dropping a plist; the App Group is
+  how the two halves share the chosen value. Not
+  `com.apple.security.device.camera`: unflicker never opens a video stream, and
+  adding it changed no probe result.
