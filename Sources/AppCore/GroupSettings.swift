@@ -13,7 +13,7 @@ public enum PowerLineChoice: String, CaseIterable, Sendable {
 /// The one setting, in the App Group suite so the app (writer) and the helper
 /// (reader) see the same value from different containers.
 public struct GroupSettings {
-    public static let suiteName = "group.net.thefrog.unflicker"
+    public static let suiteName = "6UT69HR8H7.group.net.thefrog.unflicker"
     /// Doubles as the UVC control name; the stored string is the control's
     /// display spelling, so `settings(for:)` needs no translation table.
     public static let powerLineKey = "power-line-frequency"

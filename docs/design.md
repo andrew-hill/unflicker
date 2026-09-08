@@ -146,3 +146,7 @@ viewer in the tool.
   how the two halves share the chosen value. Not
   `com.apple.security.device.camera`: unflicker never opens a video stream, and
   adding it changed no probe result.
+- **Team-ID prefix on the App Group id.** Development-signed, the bare
+  `group.` form raises `kTCCServiceSystemPolicyAppData` on every process
+  launch, which the helper blocks on. The bare form is the App Store
+  convention; not tested there.

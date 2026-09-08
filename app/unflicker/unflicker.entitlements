@@ -5,6 +5,6 @@
 	<key>com.apple.security.app-sandbox</key><true/>
 	<key>com.apple.security.device.usb</key><true/>
 	<key>com.apple.security.application-groups</key>
-	<array><string>group.net.thefrog.unflicker</string></array>
+	<array><string>6UT69HR8H7.group.net.thefrog.unflicker</string></array>
 </dict>
 </plist>
