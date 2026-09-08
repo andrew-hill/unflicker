@@ -101,3 +101,39 @@ found, and the plist must be gone from `~/Library/LaunchAgents`.
 `install`, and still the symlink if that is what it was. Homebrew's
 `/opt/homebrew/bin/unflicker` points into a Cellar directory that
 `brew upgrade` deletes.
+
+## The App Store app
+
+Needs a signed build. `SMAppService` follows the bundle, so register from
+`/Applications` and not from a DerivedData path that changes on every rebuild.
+
+    xcodebuild -project app/unflicker.xcodeproj -scheme unflicker \
+        -configuration Release -derivedDataPath app/build build
+    command cp -R app/build/Build/Products/Release/unflicker.app /Applications/
+    open /Applications/unflicker.app
+
+The CLI's agent wakes on the same attaches. Either `unflicker uninstall` for
+the duration, or read the process name: `unflicker` is the CLI agent,
+`unflicker-agent` the bundled helper.
+
+- **The window lists each camera with its live value.** Enumeration and
+  `GET_CUR` through IOUSBLib, inside the sandbox.
+- **No "would like to access data from other apps" prompt.** One means the App
+  Group identifier has lost its team-ID prefix; see design.md. The helper
+  blocks on that prompt, and a denial reaches the log as `not configured yet`.
+- **Pick a frequency, turn the toggle on**, then:
+
+        launchctl print gui/$UID/net.thefrog.unflicker.agent
+
+  Expect a `Submitted` job, `managed_by = com.apple.xpc.ServiceManagement`,
+  `parent bundle identifier = net.thefrog.unflicker.app`. `requiresApproval`
+  instead means Login Items needs the approval first.
+
+- **Replug.** Expect `unflicker-agent` reporting the change, then one
+  `drained N event(s), exiting`. Also the only proof the App Group is shared:
+  `GroupSettings.standard()` returns a working object either way.
+- **Capture coexistence.** Photo Booth previewing, `unflicker set` the wrong
+  value, then plug in any unrelated USB device. Not a replug: Photo Booth
+  switches cameras and back, proving nothing about who held the device.
+- **Toggle off.** `launchctl print` reports the service not found, and a replug
+  produces nothing.
