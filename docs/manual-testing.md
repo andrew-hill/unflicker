@@ -117,7 +117,12 @@ the duration, or read the process name: `unflicker` is the CLI agent,
 `unflicker-agent` the bundled helper.
 
 - **The window lists each camera with its live value.** Enumeration and
-  `GET_CUR` through IOUSBLib, inside the sandbox.
+  `GET_CUR` through IOUSBLib, inside the sandbox. Anti-flicker reads 50 Hz on
+  a first run: unset defaults to it and stores it.
+- **Attach and detach with the window frontmost.** The list follows without
+  switching away from the app, which is the other thing that refreshes it.
+- **Close is the only title-bar button**, and the edges do not drag. Amethyst
+  maximised the resizable version.
 - **No "would like to access data from other apps" prompt.** One means the App
   Group identifier has lost its team-ID prefix; see design.md. The helper
   blocks on that prompt, and a denial reaches the log as `not configured yet`.

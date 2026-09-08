@@ -4,13 +4,22 @@ import IOKit
 /// Registry-only camera discovery, shared by both transports: which API talks
 /// to the device has no bearing on how its registry entry is found.
 public enum USBEnumeration {
-    public static func cameras() throws -> [UVCDeviceInfo] {
-        // Match the VideoControl interface so only actual cameras are listed,
-        // then walk up to the parent device. See IOUSBHostConnection for why
-        // the device, not the interface, is what we end up talking to.
+    /// Matches the VideoControl interface, so only actual cameras are listed.
+    /// A fresh dictionary each time: every IOKit call taking one consumes a
+    /// reference to it. `bInterfaceClass` filters here, unlike in launchd,
+    /// which silently matches nothing once it is added.
+    public static func cameraMatching() -> NSMutableDictionary {
         let match = IOServiceMatching("IOUSBHostInterface") as NSMutableDictionary
         match["bInterfaceClass"] = 14   // USB Video
         match["bInterfaceSubClass"] = 1 // VideoControl
+        return match
+    }
+
+    public static func cameras() throws -> [UVCDeviceInfo] {
+        // Walk up from the interface to the parent device. See
+        // IOUSBHostConnection for why the device, not the interface, is what
+        // we end up talking to.
+        let match = cameraMatching()
 
         var iterator: io_iterator_t = 0
         // Not `return []`: a lookup that fails is a fault, and reporting it as

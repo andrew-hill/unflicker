@@ -103,6 +103,9 @@ directly, so one stalling control cannot hide every control after it.
 - The agent runs `unflicker apply`: drain, enumerate, exit. Unfiltered matching
   means it wakes on any USB attach and exits quietly when no camera is there.
 - launchd replays matches at bootstrap, which is why reapply-at-login works.
+- **The app window watches the bus itself**, `IOServiceAddMatchingNotification`
+  on matched and terminated, so an open window follows attach and detach with
+  no timer anywhere. It filters on `bInterfaceClass` where launchd cannot.
 - **Idempotent rather than debounced**, because repeat runs are expected. Reads
   each control before writing and skips any already correct, so a redundant run
   costs one `GET_CUR`. A dock attach enumerates several devices at once; launchd

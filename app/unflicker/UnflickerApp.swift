@@ -8,7 +8,8 @@ struct UnflickerApp: App {
     // fallback here could repair.
     @StateObject private var model = AppModel(transport: IOUSBLibTransport(),
                                               settings: GroupSettings.standard()!,
-                                              registrar: ServiceRegistrar())
+                                              registrar: ServiceRegistrar(),
+                                              watcher: IOKitDeviceWatcher())
 
     var body: some Scene {
         Window("unflicker", id: "main") {

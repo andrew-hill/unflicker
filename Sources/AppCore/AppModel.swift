@@ -12,7 +12,7 @@ public struct CameraStatus: Equatable, Sendable, Identifiable {
 @MainActor
 public final class AppModel: ObservableObject {
     @Published public private(set) var cameras: [CameraStatus] = []
-    @Published public private(set) var choice: PowerLineChoice?
+    @Published public private(set) var choice: PowerLineChoice
     @Published public private(set) var reapplyOnAttach: Bool
     @Published public private(set) var obstacle: String?
     @Published public private(set) var problems: [String] = []
@@ -20,15 +20,25 @@ public final class AppModel: ObservableObject {
     private let transport: any UVCTransport
     private let settings: GroupSettings
     private let registrar: any AgentRegistrar
+    private let watcher: any DeviceWatcher
 
     public init(transport: any UVCTransport, settings: GroupSettings,
-                registrar: any AgentRegistrar) {
+                registrar: any AgentRegistrar, watcher: any DeviceWatcher) {
         self.transport = transport
         self.settings = settings
         self.registrar = registrar
-        choice = settings.powerLine
+        self.watcher = watcher
+        // A 60Hz supply has no banding to fix, so anyone running this is
+        // almost certainly on 50Hz. The CLI's `install` writes the same
+        // default into its config for the same reason.
+        let stored = settings.powerLine ?? .hz50
+        settings.powerLine = stored
+        choice = stored
         reapplyOnAttach = registrar.registered
         obstacle = registrar.obstacle
+        watcher.start { [weak self] in
+            Task { @MainActor in self?.refresh() }
+        }
     }
 
     /// Each action rebuilds `problems` from scratch, so a fault that has

@@ -12,14 +12,22 @@ final class FakeRegistrar: AgentRegistrar {
     func unregister() throws { if let failure { throw failure }; registered = false }
 }
 
+final class FakeWatcher: DeviceWatcher {
+    private var onChange: (@Sendable () -> Void)?
+    var watching: Bool { onChange != nil }
+    func start(onChange: @escaping @Sendable () -> Void) { self.onChange = onChange }
+    /// A camera arrived or left.
+    func fire() { onChange?() }
+}
+
 private enum TestFailure: Error { case boom }
 
-/// Enumeration that can be made to fail and then recover, which a struct
-/// FakeTransport cannot express: AppModel holds the transport it was built
-/// with.
-private final class FlakyTransport: UVCTransport {
+/// Enumeration that can be made to fail, or to answer with a different set of
+/// cameras, which a struct FakeTransport cannot: AppModel holds the transport
+/// it was built with.
+private final class MutableTransport: UVCTransport {
     var failure: UVCError?
-    private let inner: FakeTransport
+    var inner: FakeTransport
 
     init(_ inner: FakeTransport) { self.inner = inner }
 
@@ -62,7 +70,8 @@ struct AppModelTests {
     @Test func refreshListsCamerasWithFormattedValues() {
         let (info, connection) = dellCamera(powerLineFrequency: 2)
         let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         model.refresh()
 
@@ -74,7 +83,8 @@ struct AppModelTests {
         let info = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", registryID: 7)
         let connection = FakeConnection(supported: [], values: [:], ranges: [:])
         let transport = FakeTransport(infos: [info], connections: [dellID: connection])
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         model.refresh()
 
@@ -86,7 +96,8 @@ struct AppModelTests {
         let code = IOReturnCode(value: Int32(bitPattern: 0xe00002c9))
         let transport = FakeTransport(infos: [info], connections: [:],
                                       openErrors: [dellID: .openFailed(dellID, code)])
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         model.refresh()
 
@@ -98,7 +109,8 @@ struct AppModelTests {
     @Test func chooseWritesAndPersists() {
         let (info, connection) = dellCamera(powerLineFrequency: 2)
         let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         model.choose(.hz50)
 
@@ -114,7 +126,8 @@ struct AppModelTests {
                                         code: IOReturnCode(value: Int32(bitPattern: 0xe00002c9))),
                         on: "power-line-frequency", reads: false)
         let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         model.choose(.hz50)
 
@@ -124,9 +137,10 @@ struct AppModelTests {
 
     @Test func transientFaultClearsOnTheNextRefresh() {
         let (info, connection) = dellCamera(powerLineFrequency: 2)
-        let transport = FlakyTransport(FakeTransport(infos: [info],
-                                                     connections: [info.id: connection]))
-        let model = AppModel(transport: transport, settings: settings, registrar: FakeRegistrar())
+        let transport = MutableTransport(FakeTransport(infos: [info],
+                                                       connections: [info.id: connection]))
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: FakeWatcher())
 
         transport.failure = .deviceGone
         model.refresh()
@@ -142,7 +156,8 @@ struct AppModelTests {
     @Test func setReapplyRegistersAndUnregisters() {
         let registrar = FakeRegistrar()
         let model = AppModel(transport: FakeTransport(infos: [], connections: [:]),
-                             settings: settings, registrar: registrar)
+                             settings: settings, registrar: registrar,
+                             watcher: FakeWatcher())
 
         model.setReapply(true)
         #expect(registrar.registered)
@@ -157,7 +172,8 @@ struct AppModelTests {
         let registrar = FakeRegistrar()
         registrar.failure = TestFailure.boom
         let model = AppModel(transport: FakeTransport(infos: [], connections: [:]),
-                             settings: settings, registrar: registrar)
+                             settings: settings, registrar: registrar,
+                             watcher: FakeWatcher())
 
         model.setReapply(true)
 
@@ -167,12 +183,41 @@ struct AppModelTests {
         #expect(model.reapplyOnAttach == false)
     }
 
+    @Test func unsetChoiceDefaultsToFiftyAndIsStored() {
+        let model = AppModel(transport: FakeTransport(infos: [], connections: [:]),
+                             settings: settings, registrar: FakeRegistrar(),
+                             watcher: FakeWatcher())
+
+        #expect(model.choice == .hz50)
+        // Stored, not merely displayed: the helper reads the suite, and an
+        // unwritten default reaches it as "not configured yet".
+        #expect(settings.powerLine == .hz50)
+    }
+
+    @Test func attachRefreshesTheCameraList() async {
+        let watcher = FakeWatcher()
+        let transport = MutableTransport(FakeTransport(infos: [], connections: [:]))
+        let model = AppModel(transport: transport, settings: settings,
+                             registrar: FakeRegistrar(), watcher: watcher)
+        model.refresh()
+        #expect(model.cameras.isEmpty)
+        #expect(watcher.watching)
+
+        let (info, connection) = dellCamera(powerLineFrequency: 2)
+        transport.inner = FakeTransport(infos: [info], connections: [info.id: connection])
+        watcher.fire()
+        await Task.yield()
+
+        #expect(model.cameras.map(\.name) == ["Dell Monitor Webcam"])
+    }
+
     @Test func initReadsReality() {
         settings.powerLine = .hz60
         let registrar = FakeRegistrar()
         registrar.registered = true
         let model = AppModel(transport: FakeTransport(infos: [], connections: [:]),
-                             settings: settings, registrar: registrar)
+                             settings: settings, registrar: registrar,
+                             watcher: FakeWatcher())
 
         #expect(model.reapplyOnAttach == true)
         #expect(model.choice == .hz60)
