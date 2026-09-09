@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unflicker — privacy</title>
+<meta name="description" content="unflicker collects nothing. It has no network access and sends no data anywhere.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232d6cdf'/%3E%3Cg fill='%23fff'%3E%3Crect x='3' y='4' width='10' height='1.5'/%3E%3Crect x='3' y='7.25' width='10' height='1.5'/%3E%3Crect x='3' y='10.5' width='10' height='1.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1b1f24;
+    --muted: #5a6472;
+    --rule: #e2e6eb;
+    --accent: #2d6cdf;
+    --code-bg: #f4f6f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a;
+      --fg: #e6e9ed;
+      --muted: #98a2b0;
+      --rule: #2a2f36;
+      --accent: #7aa7f5;
+      --code-bg: #1d2126;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+    max-width: 44rem;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  h2 { font-size: 1.15rem; margin: 2.75rem 0 .6rem; letter-spacing: -0.01em; }
+  .lede { font-size: 1.15rem; color: var(--muted); margin: 0 0 2rem; }
+  p, li { margin: 0 0 1rem; }
+  ul { padding-left: 1.25rem; }
+  a { color: var(--accent); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .875rem; background: var(--code-bg); padding: .12em .35em; border-radius: 3px; }
+  footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .875rem; }
+</style>
+</head>
+<body>
+
+<h1>Privacy</h1>
+<p class="lede">unflicker collects nothing, sends nothing, and has no way to reach the
+network even if it wanted to.</p>
+
+<h2>No data is collected</h2>
+<p>There are no accounts, no analytics, no telemetry, no advertising identifiers and no
+crash reporting of our own. Nothing about you or your machine is gathered, stored
+remotely, or shared with anyone.</p>
+
+<h2>No network access</h2>
+<p>The Mac App Store app runs in Apple's sandbox, and it does not request
+<code>com.apple.security.network.client</code>, the entitlement macOS requires before an
+app may open an outgoing connection. Without it the operating system refuses the
+connection, so this is enforced by macOS rather than by our good intentions. You can
+check for yourself with <code>codesign -d --entitlements -</code> against the installed
+app.</p>
+
+<h2>What is stored, and where</h2>
+<p>Your settings stay on your Mac, in the ordinary places macOS keeps an app's
+preferences. Nothing is uploaded, synced or backed up to us, because there is nowhere
+for it to go.</p>
+
+<h2>What is read from your camera</h2>
+<p>To list your cameras and set the control, unflicker reads the USB descriptors each
+camera publishes about itself: its vendor and product id, its product name, and the
+control values and ranges it supports. That happens entirely on your Mac and none of it
+is transmitted or retained.</p>
+<p>unflicker never opens a video stream. It does not request the camera entitlement, and
+it cannot see, capture or record what your camera is pointed at.</p>
+
+<h2>Apple</h2>
+<p>If you have opted in to share analytics and crash data with developers in your
+privacy settings, Apple may give us anonymised crash reports for the App Store build.
+That channel is Apple's, is controlled entirely by your own setting, and is governed by
+Apple's privacy policy rather than this one. We collect nothing through it beyond what
+Apple chooses to aggregate.</p>
+
+<h2>Changes and contact</h2>
+<p>If this policy ever changes, the updated version appears on this page. Questions are
+welcome on the <a href="https://github.com/andrew-hill/unflicker/issues">issue
+tracker</a>.</p>
+
+<footer>Last updated 9 September 2026. <a href="/">unflicker</a></footer>
+
+</body>
+</html>
