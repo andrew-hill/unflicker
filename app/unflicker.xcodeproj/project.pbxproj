@@ -16,6 +16,7 @@
 		4492AB22AA0615741F094D34 /* IOUSBLibTransport in Frameworks */ = {isa = PBXBuildFile; productRef = CF645110652AB2CDF3589AE4 /* IOUSBLibTransport */; };
 		4A24242717FFC106A75E7518 /* unflicker-agent in Embed Helper */ = {isa = PBXBuildFile; fileRef = 2041808E9B8567FDE1DC056D /* unflicker-agent */; };
 		7D406632D792522699ED4ED4 /* net.thefrog.unflicker.agent.plist in Embed LaunchAgent */ = {isa = PBXBuildFile; fileRef = 1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */; };
+		A1C0DE0000ICON0000BUILD1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1C0DE0000ICON0000FILE01 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,7 @@
 		44C92A7443E9E23FD2D016B6 /* UnflickerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnflickerApp.swift; sourceTree = "<group>"; };
 		27A5BE626838848CBEB8D816 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		63DDB0672E636C6AEAEF552F /* unflicker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = unflicker.entitlements; sourceTree = "<group>"; };
+		A1C0DE0000ICON0000FILE01 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.thefrog.unflicker.agent.plist; sourceTree = "<group>"; };
 		2041808E9B8567FDE1DC056D /* unflicker-agent */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "unflicker-agent"; sourceTree = BUILT_PRODUCTS_DIR; };
 		156E655730B8D8C5EDC73A98 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				44C92A7443E9E23FD2D016B6 /* UnflickerApp.swift */,
 				27A5BE626838848CBEB8D816 /* ContentView.swift */,
 				63DDB0672E636C6AEAEF552F /* unflicker.entitlements */,
+				A1C0DE0000ICON0000FILE01 /* Assets.xcassets */,
 				1507C1A3A7C404C5AB5AB06A /* net.thefrog.unflicker.agent.plist */,
 			);
 			path = unflicker;
@@ -218,6 +221,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0DE0000ICON0000BUILD1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,6 +331,7 @@
 		2611C0D1D274BDBD25348F36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = unflicker/unflicker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -336,7 +341,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "2026 Andrew Hill";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -353,6 +359,7 @@
 		3C8DE2B6BBD527257759BAD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = unflicker/unflicker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -362,7 +369,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "2026 Andrew Hill";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
