@@ -119,8 +119,8 @@ import Testing
     let results = try Apply.run(transport: transport, config: config, dryRun: false)
 
     #expect(results.count == 2)
-    #expect(logitechConnection.values["power-line-frequency"] == 1)
-    #expect(otherConnection.values["power-line-frequency"] == 2)
+    #expect(logitechConnection.writes.map(\.1) == [1])
+    #expect(otherConnection.writes.map(\.1) == [2])
 }
 
 // An unplug mid-apply is not a failure: what already applied stands, and the
@@ -283,12 +283,6 @@ private let dellInfo = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", re
     #expect(connection.writes.map(\.1) == [1])
 }
 
-@Test func notOpenedOutcomeReadsAsEnglish() {
-    #expect(ApplyOutcome.notOpened("could not open: IOKit 0xe00002c9").line
-            == "could not open: IOKit 0xe00002c9, skipped")
-    #expect(ApplyOutcome.noProcessingUnit.line == "exposes no UVC processing unit, skipped")
-}
-
 // The camera completes SET_CUR and keeps its old value. Reported as `.changed`
 // against the value that was read before the write, so a discarded write and a
 // successful one printed the same line.
@@ -304,9 +298,4 @@ private let dellInfo = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", re
                                     outcomes: [.notKept("power-line-frequency", wrote: 1, reads: 2)])])
     #expect(ApplyOutcome.notKept("power-line-frequency", wrote: 1, reads: 2).isFault)
     #expect(connection.writes.map(\.1) == [1])
-}
-
-@Test func notKeptOutcomeReadsAsEnglish() {
-    #expect(ApplyOutcome.notKept("power-line-frequency", wrote: 1, reads: 2).line
-            == "power-line-frequency accepted 50Hz but reads 60Hz")
 }

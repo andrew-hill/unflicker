@@ -89,6 +89,45 @@ private let powerLineFrequency = UVCControl.named("power-line-frequency")!
     #expect(connection.writes.map(\.1) == [1])
 }
 
+// `unflicker set --device 046d:085b` parses: --device takes its value, and no
+// bare argument is missing as far as the argument walk is concerned. The
+// assignment is what the command is for, so its absence is a usage error, not
+// a run that quietly did nothing.
+@Test func setWithNoAssignmentPrintsUsageRatherThanExitingZero() {
+    let (info, connection) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.setControl(transport, assignment: nil, device: nil)
+
+    #expect(status == 2)
+    #expect(connection.writes.isEmpty)
+}
+
+// The user typed this name, so unlike in `apply` - where the config may be
+// shared with a machine that has other cameras - an unknown one is a mistake
+// in the request, and the camera is never opened.
+@Test func setExitsNonZeroWhenTheControlNameIsUnknown() {
+    let (info, connection) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.setControl(transport, assignment: "not-a-control=1", device: nil)
+
+    #expect(status == 1)
+    #expect(connection.writes.isEmpty)
+}
+
+// Same again for the value: `55Hz` is not a spelling any camera has, so there
+// is nothing to send and nothing to report as done.
+@Test func setExitsNonZeroWhenTheValueWillNotParse() {
+    let (info, connection) = c925e()
+    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
+
+    let status = CLI.setControl(transport, assignment: "power-line-frequency=55Hz", device: nil)
+
+    #expect(status == 1)
+    #expect(connection.writes.isEmpty)
+}
+
 // Same class again: the camera the user named is not attached, so the write
 // they asked for did not happen.
 @Test func setExitsNonZeroWhenNoCameraMatches() {

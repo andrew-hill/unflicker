@@ -85,15 +85,56 @@ struct FakeTransport: UVCTransport {
 }
 
 /// A stand-in for the C925e, with the exact ranges read off the real device.
-func c925e(powerLineFrequency: Int = 2, brightness: Int = 128) -> (UVCDeviceInfo, FakeConnection) {
+func c925e(powerLineFrequency: Int = 2) -> (UVCDeviceInfo, FakeConnection) {
     let id = UVCDeviceID(vendor: 0x046d, product: 0x085b)
     let info = UVCDeviceInfo(id: id, name: "Logitech Webcam C925e", registryID: 1)
     let conn = FakeConnection(
         supported: ["power-line-frequency", "brightness", "contrast", "saturation",
                     "sharpness", "white-balance-temperature", "backlight-compensation",
                     "gain", "white-balance-temperature-auto"],
-        values: ["power-line-frequency": powerLineFrequency, "brightness": brightness],
+        values: ["power-line-frequency": powerLineFrequency, "brightness": 128],
         ranges: ["power-line-frequency": 1...2, "brightness": 0...255]
     )
     return (info, conn)
+}
+
+/// Reports no devices until the `appearOnCall`th call, and counts the calls.
+/// Drives the readiness backoff without waiting on anything real, and proves
+/// `apply` enumerates once rather than twice.
+struct CountingTransport: UVCTransport {
+    final class Counter: @unchecked Sendable { var calls = 0 }
+    var appearOnCall = 1
+    let info: UVCDeviceInfo
+    var connection: FakeConnection?
+    let counter = Counter()
+
+    func devices() throws -> [UVCDeviceInfo] {
+        counter.calls += 1
+        return counter.calls >= appearOnCall ? [info] : []
+    }
+
+    func open(_ device: UVCDeviceInfo) throws -> any UVCConnection {
+        guard let connection else { throw UVCError.deviceGone }
+        return connection
+    }
+}
+
+/// Fails enumeration outright, the way a broken IOKit lookup would.
+struct BrokenTransport: UVCTransport {
+    func devices() throws -> [UVCDeviceInfo] { throw UVCError.deviceGone }
+    func open(_ device: UVCDeviceInfo) throws -> any UVCConnection { throw UVCError.deviceGone }
+}
+
+/// Hands `body` a config file in a directory of its own and removes the
+/// directory afterwards. `contents` nil leaves the path empty, for the tests
+/// that write their own bytes. A file left at mode 0o000 still unlinks, so the
+/// permission tests need no restore of their own.
+func withConfigFile<T>(_ contents: String?, _ body: (URL) throws -> T) rethrows -> T {
+    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
+    try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    let path = dir.appendingPathComponent("unflicker.conf")
+    if let contents { try! contents.write(to: path, atomically: true, encoding: .utf8) }
+    defer { try? FileManager.default.removeItem(at: dir) }
+    return try body(path)
 }

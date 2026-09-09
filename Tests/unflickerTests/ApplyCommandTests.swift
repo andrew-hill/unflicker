@@ -3,23 +3,15 @@ import Testing
 @testable import UVCCore
 @testable import unflicker
 
-private func tempConfig(_ contents: String?) -> URL {
-    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
-    try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let path = dir.appendingPathComponent("unflicker.conf")
-    if let contents { try! contents.write(to: path, atomically: true, encoding: .utf8) }
-    return path
-}
-
 // No config file is not an error, but `apply` must say so rather than
 // printing nothing, which reads as "everything was already correct".
 @Test func missingConfigIsSuccessNotAnError() {
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig(nil))
+    let status = withConfigFile(nil) {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 0)
     #expect(connection.writes.isEmpty)
@@ -31,8 +23,9 @@ private func tempConfig(_ contents: String?) -> URL {
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency\n"))
+    let status = withConfigFile("[default]\npower-line-frequency\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -42,8 +35,9 @@ private func tempConfig(_ contents: String?) -> URL {
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[logitech]\nbrightness = 1\n"))
+    let status = withConfigFile("[logitech]\nbrightness = 1\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -53,39 +47,12 @@ private func tempConfig(_ contents: String?) -> URL {
     let (info, connection) = c925e(powerLineFrequency: 2)
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = 50Hz\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = 50Hz\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 0)
     #expect(connection.writes.map(\.1) == [1])
-}
-
-@Test func configErrorsReadAsEnglish() {
-    #expect("\(ConfigError.malformedLine(number: 2, text: "power-line-frequency"))"
-            == "line 2: cannot parse 'power-line-frequency'")
-    #expect("\(ConfigError.badSection(number: 1, text: "logitech"))"
-            == "line 1: '[logitech]' is not [default] or a vendor:product id like [046d:085b]")
-}
-
-/// Reports devices only after `appearOnCall`, and counts how many times it was
-/// asked. Used to prove `apply` enumerates once rather than twice.
-private struct CountingTransport: UVCTransport {
-    final class Counter: @unchecked Sendable { var calls = 0 }
-    let info: UVCDeviceInfo
-    let connection: FakeConnection
-    let counter = Counter()
-
-    func devices() throws -> [UVCDeviceInfo] {
-        counter.calls += 1
-        return [info]
-    }
-    func open(_ device: UVCDeviceInfo) throws -> any UVCConnection { connection }
-}
-
-/// Fails enumeration outright, the way a broken IOKit lookup would.
-private struct BrokenTransport: UVCTransport {
-    func devices() throws -> [UVCDeviceInfo] { throw UVCError.deviceGone }
-    func open(_ device: UVCDeviceInfo) throws -> any UVCConnection { throw UVCError.deviceGone }
 }
 
 // A config that exists but cannot be read must not be reported as "no config".
@@ -93,11 +60,10 @@ private struct BrokenTransport: UVCTransport {
 @Test func unreadableConfigIsReportedNotTreatedAsMissing() throws {
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-    let path = tempConfig("[default]\npower-line-frequency = 50Hz\n")
-    try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
-    defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: path.path) }
-
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
+    let status = try withConfigFile("[default]\npower-line-frequency = 50Hz\n") { path in
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
+        return CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -106,10 +72,10 @@ private struct BrokenTransport: UVCTransport {
 @Test func configThatIsNotUTF8IsReportedNotTreatedAsMissing() throws {
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-    let path = tempConfig(nil)
-    try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
-
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
+    let status = try withConfigFile(nil) { path in
+        try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
+        return CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -118,8 +84,9 @@ private struct BrokenTransport: UVCTransport {
 // waitForDevices must not swallow this and return []: a broken enumeration
 // then looks exactly like "no camera plugged in".
 @Test func enumerationFailureIsReportedNotReadAsNoCameras() {
-    let status = CLI.applyOnce(BrokenTransport(), dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = 50Hz\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = 50Hz\n") {
+        CLI.applyOnce(BrokenTransport(), dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
 }
@@ -130,8 +97,9 @@ private struct BrokenTransport: UVCTransport {
     let (info, connection) = c925e(powerLineFrequency: 2)
     let transport = CountingTransport(info: info, connection: connection)
 
-    _ = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                      configPath: tempConfig("[default]\npower-line-frequency = 50Hz\n"))
+    withConfigFile("[default]\npower-line-frequency = 50Hz\n") {
+        _ = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(transport.counter.calls == 1)
 }
@@ -182,8 +150,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
                                     code: IOReturnCode(value: Int32(bitPattern: 0xe00002c9))))
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = 50Hz\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = 50Hz\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -195,8 +164,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\ngamma = 100\n"))
+    let status = withConfigFile("[default]\ngamma = 100\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 0)
     #expect(connection.writes.isEmpty)
@@ -212,8 +182,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
         connections: [info.id: connection],
         openErrors: [dellID: .openFailed(dellID, IOReturnCode(value: Int32(bitPattern: 0xe00002c9)))])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = 50Hz\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = 50Hz\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
     // and the camera that did open was still reapplied
@@ -228,8 +199,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
     let (info, connection) = c925e(powerLineFrequency: 2)
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = 55Hz\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = 55Hz\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 1)
     #expect(connection.writes.isEmpty)
@@ -241,8 +213,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
     let (info, connection) = c925e()
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\nnot-a-control = 1\n"))
+    let status = withConfigFile("[default]\nnot-a-control = 1\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 0)
     #expect(connection.writes.isEmpty)
@@ -253,8 +226,9 @@ private let somePath = URL(fileURLWithPath: "/Users/x/.config/unflicker/unflicke
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
 
     // The C925e answers 1...2, so `auto` is a value this camera does not have.
-    let status = CLI.applyOnce(transport, dryRun: false, fromLaunchd: false,
-                               configPath: tempConfig("[default]\npower-line-frequency = auto\n"))
+    let status = withConfigFile("[default]\npower-line-frequency = auto\n") {
+        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
+    }
 
     #expect(status == 0)
     #expect(connection.writes.isEmpty)

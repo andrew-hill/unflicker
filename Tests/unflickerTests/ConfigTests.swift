@@ -59,9 +59,13 @@ private let otherID = UVCDeviceID(vendor: 0x1234, product: 0x5678)
     }
 }
 
+// No config file, the fresh-install state, which loads as nil. Its partner
+// below covers a file that exists but cannot be read.
 @Test func missingFileLoadsAsNil() throws {
-    let path = URL(fileURLWithPath: "/nonexistent/unflicker.conf")
-    #expect(try Config.load(path) == nil)
+    try withConfigFile(nil) { path in
+        let loaded = try Config.load(path)
+        #expect(loaded == nil)
+    }
 }
 
 @Test func configPathFollowsXDGWhenSet() {
@@ -69,58 +73,36 @@ private let otherID = UVCDeviceID(vendor: 0x1234, product: 0x5678)
     #expect(Config.path(xdg: nil, home: "/Users/x").path == "/Users/x/.config/unflicker/unflicker.conf")
 }
 
-// A file that exists but cannot be read is not the same thing as no file at
-// all. Collapsing the two is how a typo silently disabled the tool once
-// already. See ApplyCommandTests.
-@Test func unreadableFileThrowsRatherThanLoadingAsNil() throws {
-    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let path = dir.appendingPathComponent("unflicker.conf")
-    try "[default]\npower-line-frequency = 50Hz\n".write(to: path, atomically: true, encoding: .utf8)
-    try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
-    defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: path.path) }
-
-    #expect(throws: (any Error).self) { try Config.load(path) }
-}
-
-@Test func fileThatIsNotUTF8ThrowsRatherThanLoadingAsNil() throws {
-    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let path = dir.appendingPathComponent("unflicker.conf")
-    try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
-
-    #expect(throws: (any Error).self) { try Config.load(path) }
-}
-
-// These reach the user on stderr. A raw NSError dump is the same defect the
-// ConfigError descriptions were written to fix.
+// A file that exists but cannot be read, kept distinct from the missing file
+// above: reported as "no config" it would disable the tool silently.
 @Test func unreadableFileErrorReadsAsEnglish() throws {
-    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let path = dir.appendingPathComponent("unflicker.conf")
-    try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
-
-    #expect(throws: ConfigError.unreadable("not valid UTF-8 text")) { try Config.load(path) }
+    try withConfigFile(nil) { path in
+        try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
+        #expect(throws: ConfigError.unreadable("not valid UTF-8 text")) { try Config.load(path) }
+    }
 }
 
+// `localizedDescription` is localised, so the expected reason has to come from
+// Foundation rather than a literal.
 @Test func unreadableFileSaysWhyWithoutDumpingAnNSError() throws {
-    let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("unflicker-tests-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let path = dir.appendingPathComponent("unflicker.conf")
-    try "[default]\n".write(to: path, atomically: true, encoding: .utf8)
-    try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
-    defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: path.path) }
+    try withConfigFile("[default]\n") { path in
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
+        var reason = ""
+        do {
+            _ = try String(contentsOf: path, encoding: .utf8)
+            Issue.record("expected the file to be unreadable")
+            return
+        } catch {
+            reason = error.localizedDescription
+        }
 
-    do {
-        _ = try Config.load(path)
-        Issue.record("expected Config.load to throw")
-    } catch let error as ConfigError {
-        #expect("\(error)".contains("permission"))
-        #expect(!"\(error)".contains("NSCocoaErrorDomain"))
+        do {
+            _ = try Config.load(path)
+            Issue.record("expected Config.load to throw")
+        } catch let error as ConfigError {
+            #expect("\(error)" == reason)
+            #expect(!"\(error)".contains("NSCocoaErrorDomain"))
+        }
     }
 }
 

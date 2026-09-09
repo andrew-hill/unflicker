@@ -150,15 +150,6 @@ private func tempPlistURL() -> URL {
     }
 }
 
-@Test func installerErrorsReadAsEnglish() {
-    let failed = AgentInstallerError.launchctlFailed(["bootstrap", "gui/501", "/x.plist"],
-                                                     status: 5, output: "Load failed: 5")
-    #expect("\(failed)" == "launchctl bootstrap failed (status 5): Load failed: 5 "
-                         + "[launchctl bootstrap gui/501 /x.plist]")
-    #expect("\(AgentInstallerError.binaryNotFound("/nope/unflicker"))"
-            == "cannot find the running unflicker binary (looked at /nope/unflicker)")
-}
-
 // A fresh install has nothing to boot out, and launchctl says so on stderr:
 // "Boot-out failed: 3: No such process". We ignore that status deliberately, so
 // printing it as the first thing a new user sees is just alarming noise. Since

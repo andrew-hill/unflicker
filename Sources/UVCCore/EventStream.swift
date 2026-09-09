@@ -23,17 +23,13 @@ public enum EventStream {
         let queue = DispatchQueue(label: "net.thefrog.unflicker.events")
         let quiet = DispatchSemaphore(value: 0)
         let seen = Collector()
-        let deadline = DispatchTime.now() + cap
-        // Once only: events still arriving inside the last idle window would
-        // each log it. Touched only in the handler, which `queue` serialises,
-        // so no lock, but the compiler cannot see that through xpc's C
-        // callback type.
-        nonisolated(unsafe) var announcedCap = false
+        // Touched only in the handler, which `queue` serialises, so no lock,
+        // but the compiler cannot see that through xpc's C callback type.
+        nonisolated(unsafe) var schedule = DrainSchedule(start: .now(), idle: idle, cap: cap)
 
-        // Rearmed by every event, so a burst of them extends the wait.
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.setEventHandler { quiet.signal() }
-        timer.schedule(deadline: min(.now() + idle, deadline))
+        timer.schedule(deadline: schedule.first)
         timer.resume()
 
         xpc_set_event_stream_handler("com.apple.iokit.matching", queue) { event in
@@ -41,19 +37,50 @@ public enum EventStream {
                 .map { String(cString: $0) } ?? "(unnamed)"
             seen.add(name)
             Log.agent.notice("event \(name, privacy: .public)")
-            let next = DispatchTime.now() + idle
-            if next > deadline, !announcedCap {
+            let rearmed = schedule.rearm(after: .now())
+            if rearmed.announce {
                 // Afterwards the log is all there is to tell a drain cut
                 // short from a bus that went quiet.
-                announcedCap = true
                 Log.agent.notice("still arriving after \(Int(cap), privacy: .public)s, exiting anyway")
             }
-            timer.schedule(deadline: min(next, deadline))
+            timer.schedule(deadline: rearmed.deadline)
         }
 
         quiet.wait()
         timer.cancel()
         return seen.all
+    }
+}
+
+/// When the idle timer fires next. Every event pushes it out by another `idle`
+/// window, and the cap bounds the whole wait, so a device re-enumerating faster
+/// than `idle` cannot keep this process resident. Separate from `drain` because
+/// reaching the cap on a real bus means holding the wait open for its full
+/// length, which the cap is intended to prevent.
+struct DrainSchedule {
+    private let start: DispatchTime
+    private let idle: TimeInterval
+    private let cap: TimeInterval
+    private var announced = false
+
+    init(start: DispatchTime, idle: TimeInterval, cap: TimeInterval) {
+        self.start = start
+        self.idle = idle
+        self.cap = cap
+    }
+
+    var deadline: DispatchTime { start + cap }
+
+    /// Where the timer is armed before any event arrives.
+    var first: DispatchTime { min(start + idle, deadline) }
+
+    /// `announce` is true once only: events still arriving inside the last idle
+    /// window would each log the same line.
+    mutating func rearm(after now: DispatchTime) -> (deadline: DispatchTime, announce: Bool) {
+        let next = now + idle
+        guard next > deadline else { return (next, false) }
+        defer { announced = true }
+        return (deadline, !announced)
     }
 }
 

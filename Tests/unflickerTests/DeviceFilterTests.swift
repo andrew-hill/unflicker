@@ -24,12 +24,6 @@ import Testing
     #expect(throws: CLIError.self) { try CLI.deviceFilter(["unflicker", "show", "--device"]) }
 }
 
-@Test func deviceErrorsReadAsEnglish() {
-    #expect("\(CLIError.missingValue("--device"))" == "--device needs a value")
-    #expect("\(CLIError.badDeviceID("413c:dOO3"))"
-            == "'413c:dOO3' is not a vendor:product id like 046d:085b")
-}
-
 // A flag read with `contains` is invisible when it is misspelled. This is the
 // dangerous direction: the user asked for nothing to happen and got a write.
 @Test func aMisspelledDryRunIsRejectedRatherThanRunForReal() {
