@@ -71,6 +71,24 @@
   }
   .links a:hover { border-color: var(--accent); }
   footer { margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .875rem; }
+  @media (min-width: 60rem) {
+    body { max-width: 64rem; }
+    .wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 23rem;
+      grid-template-areas:
+        "test    install"
+        "explain links";
+      column-gap: 3rem;
+      align-items: start;
+    }
+    .test { grid-area: test; }
+    .install { grid-area: install; }
+    .explain { grid-area: explain; }
+    .more { grid-area: links; }
+    .install > h2:first-child, .explain > h2:first-child { margin-top: 0; }
+    .links { flex-direction: column; }
+  }
 </style>
 </head>
 <body>
@@ -78,6 +96,8 @@
 <h1>unflicker</h1>
 <p class="lede">Your USB webcam bands under mains lighting, and it forgets the fix every
 time you plug it in. This puts the setting back, on every reconnect.</p>
+
+<div class="wrap">
 
 <div class="test">
   <p class="yes"><b>✅ This is for you if</b>
@@ -91,6 +111,7 @@ time you plug it in. This puts the setting back, on every reconnect.</p>
   control, so nothing here can reach them, and neither can any similar tool.</p>
 </div>
 
+<div class="install">
 <h2>Install</h2>
 <pre><code>brew install andrew-hill/tap/unflicker
 unflicker install</code></pre>
@@ -98,7 +119,9 @@ unflicker install</code></pre>
 line tools; there is nothing else to install and nothing to configure.</p>
 
 <!-- App Store link goes here once the sandboxed build ships. -->
+</div>
 
+<div class="explain">
 <h2>Why your camera forgets</h2>
 <p>Webcams have a <code>power-line-frequency</code> setting that matches exposure to your
 mains supply, and they band when it is wrong. macOS exposes it nowhere: no System
@@ -111,13 +134,18 @@ monitor off is enough to lose it.</p>
 <p>No daemon, no menu bar item, no timer. macOS starts unflicker when a USB device
 attaches, it checks whether your camera needs the setting put back, and it quits. The
 same happens at login for anything already plugged in.</p>
+</div>
 
+<div class="more">
 <h2>More</h2>
 <ul class="links">
   <li><a href="https://github.com/andrew-hill/unflicker">Source and full documentation</a></li>
   <li><a href="https://github.com/andrew-hill/unflicker/issues">Report a problem</a></li>
   <li><a href="/privacy.html">Privacy</a></li>
 </ul>
+</div>
+
+</div>
 
 <footer>MIT licensed. Built for macOS.</footer>
 
