@@ -9,9 +9,9 @@ forget on every reconnect.
 ✅ **Yes** — an **external USB webcam** bands or ripples under mains lighting,
 and the banding comes back every time you reconnect it.
 
-❌ **No** — it's the **built-in camera on a MacBook**. Those aren't USB and
-expose no UVC control, so nothing here can reach them, and neither can any
-similar tool.
+❌ **No** — it's the **built-in camera on a Mac**. On Apple silicon it hangs off
+the image signal processor rather than USB and exposes no UVC control, so nothing
+here can reach it, and neither can any similar tool.
 
 Most likely if you're on a **50 Hz mains supply** — the UK, Europe, most of Asia,
 Africa, Australia, most of South America. Cameras ship set to 60 Hz, so they are
@@ -245,7 +245,7 @@ is never overwritten.
 
 ## Limitations
 
-- Can't touch a built-in MacBook camera — see above.
+- Can't touch a Mac's built-in camera — see above.
 - **Only fixes mains-frequency banding.** A dimmable LED flickers on its own
   account. Run the dimmer up and down: if the banding tracks it, the lamp is at
   fault and no camera setting helps.

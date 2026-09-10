@@ -24,7 +24,7 @@ Out of scope:
 
 - **The Camera Terminal** (zoom, pan/tilt, exposure, focus). Own value
   encodings, resets on replug too, not restored yet.
-- **Built-in MacBook cameras.** Apple Silicon internals hang off the image
+- **Built-in Mac cameras.** Apple Silicon internals hang off the image
   signal processor, are not USB, and expose no UVC interface.
 - **A camera control GUI.** CameraController does that, and is free.
 - **Video post-processing deflicker.** Different problem, similar vocabulary.
