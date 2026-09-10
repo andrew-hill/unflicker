@@ -4,19 +4,20 @@ import AppCore
 struct ContentView: View {
     @ObservedObject var model: AppModel
 
+    /// Text outside the form lines up with the text inside a row, not with the
+    /// edge of the boxes: 20 to the box edge, then the row's own inset.
+    private let textInset: CGFloat = 30
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Outside the Form: inside it, grouped style boxes it up as a
-            // section of its own. The insets match what the boxes below get.
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Webcam anti-flicker").font(.headline)
-                Text("Match your mains frequency once. unflicker sets it "
-                     + "again every time a camera reconnects.")
+            // section of its own. Sized to stay on one line at 380 wide.
+            Text("Set it once. unflicker reapplies it on every reconnect.")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.top, 14)
-            .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.horizontal, textInset)
+                .zIndex(1)
 
             Form {
                 HStack {
@@ -71,6 +72,27 @@ struct ContentView: View {
                 }
             }
             .formStyle(.grouped)
+            // Grouped forms scroll. The window sizes to its content, so the
+            // content must report a real height rather than a scrollable one.
+            .scrollDisabled(true)
+            .fixedSize(horizontal: false, vertical: true)
+            // Grouped style pads for a full-window form; this is a small panel.
+            // The text above carries a zIndex to survive the negative top inset,
+            // which otherwise paints the form's backdrop over it.
+            .padding(.vertical, -10)
+
+            // Only USB cameras are enumerated, so this sets expectations rather
+            // than annotating a camera that cannot appear in the list.
+            HStack(spacing: 4) {
+                Text("Where's my built-in camera?")
+                    .font(.callout).foregroundStyle(.secondary)
+                HelpButton {
+                    Text("Apple silicon built-in cameras are not USB. They hang off the "
+                         + "image signal processor and expose no anti-flicker control, so "
+                         + "nothing can change them: not unflicker, not any similar tool.")
+                }
+            }
+            .padding(.horizontal, textInset)
         }
         .frame(width: 380)
         .padding(.bottom, 14)
