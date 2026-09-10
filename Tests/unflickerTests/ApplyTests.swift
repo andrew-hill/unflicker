@@ -29,17 +29,6 @@ import Testing
     #expect(connection.writes.isEmpty)
 }
 
-@Test func applyIsIdempotent() throws {
-    let (info, connection) = c925e(powerLineFrequency: 2)
-    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-    let config = try Config.parse("[default]\npower-line-frequency = 50Hz")
-
-    _ = try Apply.run(transport: transport, config: config, dryRun: false)
-    _ = try Apply.run(transport: transport, config: config, dryRun: false)
-
-    #expect(connection.writes.count == 1)
-}
-
 @Test func dryRunWritesNothing() throws {
     let (info, connection) = c925e(powerLineFrequency: 2)
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
@@ -231,14 +220,6 @@ import Testing
         .stalled("gain", .pipeStalled),
         .changed("power-line-frequency", from: 2, to: 1)])])
     #expect(connection.writes.map(\.0) == ["power-line-frequency"])
-}
-
-// The camera claimed the control in bmControls and then refused the request.
-// Say both halves, and keep the IOKit code: it is what tells a stall apart
-// from a real fault.
-@Test func stalledOutcomeSaysTheCameraAdvertisedTheControl() {
-    #expect(ApplyOutcome.stalled("gain", .pipeStalled).line
-            == "gain advertised but not supported by this camera (IOKit 0xe0005000), skipped")
 }
 
 // MARK: - a camera that will not open

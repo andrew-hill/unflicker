@@ -91,11 +91,6 @@ import Testing
     }
 }
 
-// The id follows --device, so it is neither a flag nor a bare argument.
-@Test func aDeviceIdIsNotCountedAsAPositional() throws {
-    try CLI.rejectUnknownArguments(["unflicker", "show", "--device", "046d:085b"], command: "show")
-}
-
 // `help` and `--version` were the two commands `accepted` did not list, and a
 // command missing from that table takes any flag and any number of arguments
 // in silence.
@@ -105,6 +100,23 @@ import Testing
     }
     #expect(throws: CLIError.self) {
         try CLI.rejectUnknownArguments(["unflicker", "help", "list"], command: "help")
+    }
+}
+
+// `accepted` is what makes a flag or a stray argument an error, and a command
+// with no row there takes both in silence. The parser cannot tell that from a
+// genuinely unknown command, which falls through the same `else`, so the usage
+// text is the check: a command nobody can discover is not the way this happens.
+@Test func everyCommandTheUsageDocumentsHasARowInTheAcceptedTable() {
+    let documented = CLI.usage
+        .split(separator: "\n")
+        .filter { $0.hasPrefix("  ") }
+        .compactMap { $0.split(separator: " ").first.map(String.init) }
+        .map(CLI.canonical)
+
+    #expect(documented.count > 1)
+    for command in documented {
+        #expect(CLI.accepted[command] != nil, "'\(command)' is in usage but not in CLI.accepted")
     }
 }
 

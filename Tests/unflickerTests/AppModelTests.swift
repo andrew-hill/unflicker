@@ -103,7 +103,6 @@ struct AppModelTests {
 
         #expect(model.cameras.count == 1)
         #expect(model.cameras[0].detail == UVCError.openFailed(dellID, code).description)
-        #expect(model.cameras[0].detail.contains("0xe00002c9"))
     }
 
     @Test func chooseWritesAndPersists() {

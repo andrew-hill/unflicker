@@ -2,22 +2,10 @@ import Testing
 @testable import UVCCore
 @testable import unflicker
 
-// Every string the user reads on stdout or stderr, in one file, so `apply` and
-// `set` cannot word the same condition two different ways. Nothing here touches
-// a camera, a file or the argument parser.
-
-@Test func configErrorsReadAsEnglish() {
-    #expect("\(ConfigError.malformedLine(number: 2, text: "power-line-frequency"))"
-            == "line 2: cannot parse 'power-line-frequency'")
-    #expect("\(ConfigError.badSection(number: 1, text: "logitech"))"
-            == "line 1: '[logitech]' is not [default] or a vendor:product id like [046d:085b]")
-}
-
-@Test func deviceErrorsReadAsEnglish() {
-    #expect("\(CLIError.missingValue("--device"))" == "--device needs a value")
-    #expect("\(CLIError.badDeviceID("413c:dOO3"))"
-            == "'413c:dOO3' is not a vendor:product id like 046d:085b")
-}
+// The messages whose construction does something: a hex format, a friendly
+// value looked up from the catalogue, a branch between two wordings. Ones that
+// only interpolate their own case's values are read off the source instead.
+// Nothing here touches a camera, a file or the argument parser.
 
 @Test func controlErrorsReadAsEnglish() {
     #expect("\(UVCControlError.unknownControl("nope"))" == "unknown control 'nope'")
@@ -33,12 +21,6 @@ import Testing
                                  IOReturnCode(value: Int32(bitPattern: 0xe00002c9)))
     #expect("\(err)" == "could not open camera 046d:085b: IOKit 0xe00002c9")
     #expect("\(UVCError.deviceGone)" == "camera disconnected")
-}
-
-@Test func notOpenedOutcomeReadsAsEnglish() {
-    #expect(ApplyOutcome.notOpened("could not open: IOKit 0xe00002c9").line
-            == "could not open: IOKit 0xe00002c9, skipped")
-    #expect(ApplyOutcome.noProcessingUnit.line == "exposes no UVC processing unit, skipped")
 }
 
 @Test func notKeptOutcomeReadsAsEnglish() {

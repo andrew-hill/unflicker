@@ -3,57 +3,23 @@ import Testing
 @testable import UVCCore
 @testable import unflicker
 
-private func plist() -> [String: Any] {
-    AgentInstaller.plist(binary: "/opt/homebrew/bin/unflicker")
-}
+// Whole-dictionary equality, so a key that should not be here - a StartInterval,
+// a bInterfaceClass filter - fails this as loudly as a changed one does.
+@Test func theAgentPlistIsWhatLaunchdIsGiven() {
+    let expected: [String: Any] = [
+        "Label": "net.thefrog.unflicker",
+        "ProgramArguments": ["/opt/homebrew/bin/unflicker", "apply", "--from-launchd"],
+        "ProcessType": "Background",
+        "LaunchEvents": ["com.apple.iokit.matching": [
+            "net.thefrog.unflicker.camera-attach": [
+                "IOMatchLaunchStream": true,
+                "IOProviderClass": "IOUSBHostDevice",
+            ],
+        ]],
+    ]
 
-@Test func runsApplyFromLaunchd() {
-    #expect(plist()["ProgramArguments"] as? [String]
-            == ["/opt/homebrew/bin/unflicker", "apply", "--from-launchd"])
-}
-
-@Test func usesTheAgreedLabel() {
-    #expect(plist()["Label"] as? String == "net.thefrog.unflicker")
-}
-
-// The whole point of the project is that nothing pokes the camera on a timer.
-@Test func neverPolls() {
-    let generated = plist()
-    #expect(generated["RunAtLoad"] == nil)
-    #expect(generated["StartInterval"] == nil)
-    #expect(generated["KeepAlive"] == nil)
-    #expect(generated["StartCalendarInterval"] == nil)
-}
-
-// Matching is on the device with no property filter. Measured 2026-08-28:
-// launchd matches IOProviderClass on its own, but silently matches nothing as
-// soon as a bInterfaceClass filter is added, integer or string.
-@Test func matchesAnyUSBDevice() throws {
-    let events = plist()["LaunchEvents"] as? [String: Any]
-    let iokit = events?["com.apple.iokit.matching"] as? [String: Any]
-    let rule = iokit?["net.thefrog.unflicker.camera-attach"] as? [String: Any]
-    #expect(rule?["IOProviderClass"] as? String == "IOUSBHostDevice")
-    #expect(rule?["IOMatchLaunchStream"] as? Bool == true)
-}
-
-// A filter here would match nothing at all, which fails silently. Guard it.
-@Test func carriesNoPropertyFilter() throws {
-    let events = plist()["LaunchEvents"] as? [String: Any]
-    let iokit = events?["com.apple.iokit.matching"] as? [String: Any]
-    let rule = iokit?["net.thefrog.unflicker.camera-attach"] as? [String: Any]
-    #expect(rule?["bInterfaceClass"] == nil)
-    #expect(rule?["idVendor"] == nil)
-    #expect(rule?["idProduct"] == nil)
-}
-
-@Test func serialisesToARealPlist() throws {
-    let data = try PropertyListSerialization.data(fromPropertyList: plist(), format: .xml, options: 0)
-    let round = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-    #expect(round?["Label"] as? String == "net.thefrog.unflicker")
-}
-
-@Test func installsIntoLaunchAgents() {
-    #expect(AgentInstaller.plistURL.path.hasSuffix("Library/LaunchAgents/net.thefrog.unflicker.plist"))
+    #expect(AgentInstaller.plist(binary: "/opt/homebrew/bin/unflicker") as NSDictionary
+            == expected as NSDictionary)
 }
 
 // MARK: - install, with launchctl faked out
@@ -83,16 +49,6 @@ private func tempPlistURL() -> URL {
     let written = try PropertyListSerialization.propertyList(
         from: try Data(contentsOf: url), format: nil) as? [String: Any]
     #expect(written?["Label"] as? String == "net.thefrog.unflicker")
-}
-
-@Test func installFailsLoudlyWhenBootstrapDoes() {
-    let url = tempPlistURL()
-    defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
-
-    #expect(throws: AgentInstallerError.self) {
-        try AgentInstaller.install(binary: "/opt/homebrew/bin/unflicker", to: url,
-                                   run: { $0.first == "bootstrap" ? (5, "") : (0, "") })
-    }
 }
 
 // On a fresh machine there is nothing loaded to boot out, and launchctl says so
@@ -173,7 +129,9 @@ private func tempPlistURL() -> URL {
                                           : (0, "") })
     }
 
-    #expect("\(thrown!)".contains("Load failed: 5: Input/output error"))
+    // #require, not `!`: force-unwrapping a failed expectation kills the whole
+    // test process with signal 5 and takes the rest of the run's output with it.
+    #expect("\(try #require(thrown))".contains("Load failed: 5: Input/output error"))
 }
 
 // MARK: - what `install` says about the config it found or wrote

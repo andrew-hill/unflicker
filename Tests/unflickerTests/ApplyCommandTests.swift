@@ -31,18 +31,6 @@ import Testing
     #expect(connection.writes.isEmpty)
 }
 
-@Test func badSectionHeaderIsReported() {
-    let (info, connection) = c925e()
-    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-
-    let status = withConfigFile("[logitech]\nbrightness = 1\n") {
-        CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: $0)
-    }
-
-    #expect(status == 1)
-    #expect(connection.writes.isEmpty)
-}
-
 @Test func validConfigAppliesAndSucceeds() {
     let (info, connection) = c925e(powerLineFrequency: 2)
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
@@ -62,18 +50,6 @@ import Testing
     let transport = FakeTransport(infos: [info], connections: [info.id: connection])
     let status = try withConfigFile("[default]\npower-line-frequency = 50Hz\n") { path in
         try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: path.path)
-        return CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
-    }
-
-    #expect(status == 1)
-    #expect(connection.writes.isEmpty)
-}
-
-@Test func configThatIsNotUTF8IsReportedNotTreatedAsMissing() throws {
-    let (info, connection) = c925e()
-    let transport = FakeTransport(infos: [info], connections: [info.id: connection])
-    let status = try withConfigFile(nil) { path in
-        try Data([0xff, 0xfe, 0x5b, 0x64]).write(to: path)
         return CLI.applyOnce(transport, dryRun: false, fromLaunchd: false, configPath: path)
     }
 

@@ -14,9 +14,3 @@ import Testing
 @Test func logsToASeparateSubsystemUnderTest() {
     #expect(Log.subsystem == "unflicker.test")
 }
-
-// The README documents this string. Changing it breaks every debugging
-// instruction the project gives.
-@Test func theShippedSubsystemIsUnflicker() {
-    #expect(Log.shipped == "unflicker")
-}

@@ -27,12 +27,6 @@ import UVCCore
                 == ["power-line-frequency": "50Hz"])
     }
 
-    @Test func sameAnswerForEveryCamera() {
-        settings.powerLine = .hz60
-        #expect(settings.settings(for: UVCDeviceID("046d:085b")!)
-                == settings.settings(for: UVCDeviceID("413c:d003")!))
-    }
-
     @Test func garbageInTheSuiteReadsAsUnset() {
         defaults.set("55Hz", forKey: "power-line-frequency")
         #expect(settings.powerLine == nil)

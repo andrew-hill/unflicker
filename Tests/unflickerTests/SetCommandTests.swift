@@ -211,7 +211,6 @@ private let dellInfo = UVCDeviceInfo(id: dellID, name: "Dell Monitor Webcam", re
     let results = try CLI.setOnce(transport, control: powerLineFrequency, value: 1, device: nil)
 
     #expect(results == [ApplyResult(device: info.id, outcomes: [.notOpened("camera disconnected")])])
-    #expect(results.isEmpty == false)
 }
 
 @Test func aCameraVanishingBeforeItOpensIsReportedNotReadAsNoMatch() throws {
